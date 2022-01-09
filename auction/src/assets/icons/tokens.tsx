@@ -1,9 +1,9 @@
 import React, { useRef } from "react";
 import styled from "styled-components";
-import colors from "../../designSystem/colors";
-import theme from "../../designSystem/theme";
+import colors from "../../design/colors";
+import theme from "../../design/theme";
 import useElementSize from "../../hooks/useElementSize";
-import { YearnLogo } from "./defiApp";
+import { YearnLogo } from "./defi";
 
 type SVGProps = React.SVGAttributes<SVGElement>;
 

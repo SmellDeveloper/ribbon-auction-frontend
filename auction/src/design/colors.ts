@@ -1,6 +1,6 @@
 const colors = {
   background: {
-    one: "#030309",
+    one: "#FFFFFF",
     two: "#121218",
     three: "#1C1C22",
     four: "#26262B",
@@ -9,7 +9,7 @@ const colors = {
   border: "#1C1C22",
   borderLight: "#2E2C2B",
   text: "#ACACAB",
-  primaryText: "#FFFFFF",
+  primaryText: "#000000",
   quaternaryText: "#3F3F44",
   green: "#16CEB9",
   red: "#fc0a54",
@@ -46,7 +46,6 @@ const colors = {
     stETH: "#00A3FF",
     AAVE: "#2EBAC6",
     WAVAX: "#E84142",
-    PERP: "#00BC9A",
   },
 };
 

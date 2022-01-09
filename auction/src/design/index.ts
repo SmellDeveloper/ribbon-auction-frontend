@@ -63,6 +63,7 @@ export const BaseModalFooter = styled(BootstrapModal.Footer)`
 export const BaseModalContentColumn = styled.div<{
   marginTop?: number | "auto";
 }>`
+  color: #FFFFFF;
   display: flex;
   justify-content: center;
   z-index: 1;
@@ -87,7 +88,7 @@ export const Title = styled.span<{
   lineHeight?: number;
   letterSpacing?: number;
 }>`
-  color: ${(props) => (props.color ? props.color : colors.primaryText)};
+  color: #FFFFFF;
   font-family: VCR, sans-serif;
   font-style: normal;
   font-weight: normal;

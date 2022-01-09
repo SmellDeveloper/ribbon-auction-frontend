@@ -1,0 +1,54 @@
+{
+	"kovan": {
+		"feeds": {
+			"dai/eth": "0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541",
+			"eth/usd": "0x9326BFA02ADD2366b30bacB125260Af641031331",
+			"link/eth": "0xa36085f69e2889c224210f603d836748e7dc0088",
+			"usdc/eth": "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4"
+		},
+		"assets": {
+			"eth": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+			"weth": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
+			"usdc": "0x7e6edA50d1c833bE936492BF42C1BF376239E9e2",
+			"wbtc": "0x50570256f0da172a1908207aAf0c80d4b279f303",
+			"yvweth": "0x1E0E04C1c5c57328fcB83dEd981e304812c36962",
+			"yvusdc": "0x9d54311cCaA9C0d4ee6BD60cB82A40F4B942c8b3",
+			"steth": "0xd0A1E359811322d97991E03f863a0C30C2cF029C",
+			"aave": "0xd0A1E359811322d97991E03f863a0C30C2cF029C"
+		}
+	},
+	"mainnet": {
+		"feeds": {
+			"dai/eth": "0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541",
+			"eth/usd": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+			"link/eth": "0xa36085f69e2889c224210f603d836748e7dc0088",
+			"usdc/eth": "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4"
+		},
+		"assets": {
+			"eth": "0x0000000000000000000000000000000000000000",
+			"weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+			"wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+			"usdc": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+			"yvweth": "0xa9fe4601811213c340e850ea305481aff02f5b28",
+			"yvusdc": "0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9",
+			"steth": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+			"aave": "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9"
+		}
+	},
+	"avax": {
+		"feeds": {
+			"eth/usd": "0x0A77230d17318075983913bC2145DB16C7366156"
+		},
+		"assets": {
+			"wavax": "0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"
+		}
+	},
+	"fuji": {
+		"feeds": {
+			"eth/usd": "0xD9D01A9F7C810EC035C0e42cB9E80Ef44D7f8692"
+		},
+		"assets": {
+			"wavax": "0xD9D01A9F7C810EC035C0e42cB9E80Ef44D7f8692"
+		}
+	}
+}
