@@ -44,12 +44,12 @@ export const isAvaxAuction = (vault: string) =>
   isAvaxNetwork(AuctionAddressMap[vault as AuctionOptions].chainId);
 
 export const AuctionList= [
-  "btc-call",
-  "aave-call",
-  "eth-put",
-  "steth-call",
-  "eth-call",
-  "avax-call"
+  "WBTC-call",
+  "AAVE-call",
+  "WETH-put",
+  "wstETH-call",
+  "WETH-call",
+  "WAVAX-call"
 ] as const;
 
 export type AuctionOptions = typeof AuctionList[number];
@@ -60,7 +60,7 @@ export const AuctionAddressMap: {
     chainId: number;
   };
 } = {
-  "btc-call": isDevelopment()
+  "WBTC-call": isDevelopment()
     ? {
         vault: deployment.kovan.RibbonThetaVaultWBTCCall,
         chainId: CHAINID.ETH_KOVAN,
@@ -69,7 +69,7 @@ export const AuctionAddressMap: {
         vault: deployment.mainnet.RibbonThetaVaultWBTCCall,
         chainId: CHAINID.ETH_MAINNET,
       },
-  "aave-call": isDevelopment()
+  "AAVE-call": isDevelopment()
     ? {
         vault: deployment.kovan.RibbonThetaVaultAAVECall,
         chainId: CHAINID.ETH_KOVAN,
@@ -78,7 +78,7 @@ export const AuctionAddressMap: {
         vault: deployment.mainnet.RibbonThetaVaultAAVECall,
         chainId: CHAINID.ETH_MAINNET,
       },
-  "eth-put": isDevelopment()
+  "WETH-put": isDevelopment()
     ? {
         vault: deployment.kovan.RibbonThetaVaultETHCall,
         chainId: CHAINID.ETH_KOVAN,
@@ -87,7 +87,7 @@ export const AuctionAddressMap: {
         vault: deployment.mainnet.RibbonThetaVaultETHCall,
         chainId: CHAINID.ETH_MAINNET,
       },
-  "steth-call": isDevelopment()
+  "wstETH-call": isDevelopment()
     ? {
         vault: deployment.kovan.RibbonThetaVaultSTETHCall,
         chainId: CHAINID.ETH_KOVAN,
@@ -96,7 +96,7 @@ export const AuctionAddressMap: {
         vault: deployment.mainnet.RibbonThetaVaultSTETHCall,
         chainId: CHAINID.ETH_MAINNET,
       },
-  "eth-call": isDevelopment()
+  "WETH-call": isDevelopment()
     ? {
         vault: deployment.kovan.RibbonThetaVaultETHCall,
         chainId: CHAINID.ETH_KOVAN,
@@ -105,7 +105,7 @@ export const AuctionAddressMap: {
         vault: deployment.mainnet.RibbonThetaVaultETHCall,
         chainId: CHAINID.ETH_MAINNET,
       },
-  "avax-call": isDevelopment()
+  "WAVAX-call": isDevelopment()
     ? {
         vault: deployment.fuji.RibbonThetaVaultAVAXCall,
         chainId: CHAINID.AVAX_FUJI,
@@ -147,17 +147,17 @@ export const getEtherscanURI = (chainId: number) =>
 
 export const getAssets = (vault: AuctionOptions): Assets => {
   switch (vault) {
-    case "btc-call":
+    case "WBTC-call":
       return "WBTC";
-    case "aave-call":
+    case "AAVE-call":
       return "AAVE";
-    case "eth-put":
+    case "WETH-put":
       return "USDC";
-    case "steth-call":
+    case "wstETH-call":
       return "WETH";
-    case "eth-call":
+    case "WETH-call":
       return "WETH";
-    case "avax-call":
+    case "WAVAX-call":
       return "WAVAX";
   }
 };

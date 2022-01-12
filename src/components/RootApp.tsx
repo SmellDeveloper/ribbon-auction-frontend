@@ -14,7 +14,7 @@ import ConcludedPage from "../pages/Auction/ConcludedPage";
 import useScreenSize from "../hooks/useScreenSize";
 // import { TxStatusToast, WithdrawReminderToast } from "./Common/toasts";
 import WalletConnectModal from "../components/Wallet/WalletConnectModal";
-// import NotFound from "../pages/NotFound";
+import NotFound from "../pages/NotFound";
 import colors from "../design/colors";
 // import YourPositionModal from "./Vault/Modal/YourPositionModal";
 
@@ -41,18 +41,16 @@ const RootApp = () => {
           <Route path="/" exact>
             <Homepage />
           </Route>
-          <Route path="/auction">
+          <Route path="/auction/:auctionTitle">
             <AuctionPage />
-          </Route>
-          <Route path="/concluded">
-            <ConcludedPage />
           </Route>
           {/* <Route path="/portfolio">
             <PortfolioPage />
           </Route>
+          */}
           <Route>
             <NotFound />
-          </Route> */}
+          </Route> 
         </Switch>
         {/* <Footer /> */}
       </Router>

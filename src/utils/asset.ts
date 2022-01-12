@@ -7,8 +7,7 @@ import {
   WBTCLogo,
   WETHLogo,
   WAVAXLogo,
-  YVUSDcLogo,
-  PERPLogo,
+  YVUSDcLogo
 } from "../assets/icons/tokens";
 import colors from "../design/colors";
 
@@ -19,6 +18,7 @@ export const AssetsList = [
   "USDC",
   "WBTC",
   "stETH",
+  "yvUSDC"
 ] as const;
 
 export type Assets = typeof AssetsList[number];
@@ -133,6 +133,8 @@ export const getAssetLogo: (asset: Assets) =>
 ) => {
   switch (asset) {
     case "USDC":
+      return ColoredUSDCLogo;
+    case "yvUSDC":
       return ColoredUSDCLogo;
     case "WBTC":
       return ColoredWBTCLogo;

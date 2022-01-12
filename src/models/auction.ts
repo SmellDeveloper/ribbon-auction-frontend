@@ -4,6 +4,43 @@ import {
   AuctionOptions,
 } from "../constants/constants";
 
+export type AuctionData = {
+  id: string,
+  bidding: {
+    id: string,
+    address: string,
+    name: string,
+    symbol: string,
+    decimals: Number,
+  },
+  option: {
+    id: string,
+    address: string,
+    name: string,
+    symbol: string,
+    decimals: string,
+    expiry: string,
+    strike: string,
+    underlying: {
+      id: string,
+      address: string,
+      name: string,
+      symbol: string,
+      decimals: Number,
+    },
+    put: Boolean,
+  },
+  minimum: string,
+  size: string,
+  start: string,
+  end: string,
+  bids: Number,
+  filled: string,
+  clearing: string,
+  spot: Number,
+  live: Boolean,
+}
+
 export interface VaultData {
   responses: VaultDataResponses;
   loading: boolean;

@@ -14,7 +14,7 @@ export const getVault = (
     const provider = useSigner ? library.getSigner() : library;
   
     switch (auctionOption) {
-      case "steth-call":
+      case "wstETH-call":
         return RibbonThetaVaultSTETH__factory.connect(
           AuctionAddressMap[auctionOption].vault!,
           provider

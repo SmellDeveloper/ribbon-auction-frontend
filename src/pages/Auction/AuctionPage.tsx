@@ -17,7 +17,7 @@ import {
 } from "../../design";
 // import PerformanceSection from "../DepositPage/PerformanceSection";
 // import { isProduction } from "shared/lib/utils/env";
-
+import { Redirect } from "react-router-dom";
 import sizes from "../../design/sizes";
 import styled, { keyframes } from "styled-components";
 // import usePullUp from "../../hooks/usePullUp";
@@ -26,6 +26,14 @@ import theme from "../../design/theme";
 import colors from "../../design/colors";
 import * as fs from "fs";
 import useTextAnimation from "../../hooks/useTextAnimation";
+import useAuctionOption from "../../hooks/useVaultOption";
+import useFetchSubgraphData from "../../hooks/useFetchSubgraphData";
+import { getAssetColor, getAssetLogo } from "../../utils/asset";
+import moment from "moment";
+import { Assets } from "../../store/types";
+import { formatUnits } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
+import { decodeOrder } from "../../utils/order";
 // import TreasuryActionForm from "../../components/Vault/VaultActionsForm/TreasuryActionsForm";
 // import VaultInformation from "../../components/Deposit/VaultInformation";
 // import { useWhitelist } from "../../hooks/useWhitelist";
@@ -139,7 +147,7 @@ const DescriptionThick = styled.div`
 `
 
 const InformationCaption = styled.div`
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 300;
   text-align: center;
 `
@@ -148,7 +156,7 @@ const InformationValue = styled.div`
   font-family: VCR;
   font-size: 24px;
   font-weight: 500;
-  line-height: 16px;
+  line-height: 20px;
   text-align: center;
   color: ${colors.asset.WETH};
 `
@@ -356,7 +364,7 @@ const LiveContainer = styled.div`
 
 const LiveAuctionTitle = styled.div`
   font-family: VCR;
-  font-size: 34px;
+  font-size: 30px;
   margin-top: 4px;
   margin-bottom: -5px;
 `
@@ -577,48 +585,67 @@ const AuctionPage = () => {
 //   usePullUp();
   const { active } = useWeb3React();
   const history = useHistory();
+  const { auction, auctionTitle } = useAuctionOption();
+  const { responses, loading } = useFetchSubgraphData();
+  
+  const auctionId = auctionTitle!.split("-")[0]
+  const logoAsset = auctionTitle!.split("-")[1]
+  const color = getAssetColor(logoAsset as Assets)
+  const Logo = getAssetLogo(logoAsset as Assets)
 
-//   const web3Whitelist = useWhitelist();
-//   const whitelist = !isProduction() 
-//     ? (active ? "T-PERP-C" : undefined)
-//     : web3Whitelist;
+  const logoSize = logoAsset == "WETH"
+      ? "70px"
+      : "85px"
+  
+  const auctionInformation = useMemo(() => {
+    return responses.filter((value) => {
+      return value.id == auctionId
+    }).pop()
+  }, [responses])
 
-//   if (whitelist) {
-//     history.push("/treasury/" + whitelist)
-//   }
+  const loadingText = useTextAnimation()
+  
+  const title = useMemo(() => {
+    return auctionInformation.option.symbol.split("/")[1]
+  }, [auctionInformation]
 
-//   const vaultInformation = (
-//     <VaultInformation
-//       loading={false}
-//       vaultDeposit={0}
-//       vaultYield={0}
-//       displayData={{ deposit: "---", yield: "---" }}
-//       asset={"USDC"}
-//     />
-//   );
+  const time = moment.unix(Number(auctionInformation.end)).format("DD MMM YY, HH:mm [UTC]")
+  const size = parseFloat(
+    formatUnits(auctionInformation.size, 8)
+  ).toFixed(0)
+  const filled = parseFloat(
+    formatUnits(BigNumber.from(auctionInformation.filled).mul(10**8).div(auctionInformation.size), 6)
+  ).toFixed(0)
+  const clearingOrder = decodeOrder(auctionInformation.clearing)
 
-//   return (
-//     <>
-//       <HeroSection
-//         vaultInformation={vaultInformation}
-//       />
+  const clearingPrice = parseFloat(formatUnits(
+    clearingOrder.sellAmount
+      .mul(10**8)
+      .div(clearingOrder.buyAmount)
+    , auctionInformation.bidding.decimals.toString())
+  )
 
-//       <DepositPageContainer className="py-5">
-//         <div className="row">
-//           <PerformanceSection
-//             active={true}
-//           />
+  const clearing = auctionInformation.bidding.symb
+  ol == "USDC"
+    ? clearingPrice.toFixed(2)
+    : clearingPrice.toFixed(4)
 
-//           {/* Form for desktop */}
-//           <DesktopActionsFormContainer className="flex-column col-xl-5 offset-xl-1 col-md-6">
-//             <TreasuryActionForm variant="desktop"/>
-//           </DesktopActionsFormContainer>
-//         </div>
+  const minBidPrice = parseFloat(
+    formatUnits(
+        BigNumber.from(auctionInformation.minimum)
+            .mul(10**8)
+            .div(auctionInformation.size)
+    , auctionInformation.bidding.decimals.toString())
+  )
+  
+  const link = "/auction/" + auctionInformation.id
+    + "-" + title.split("-")[0]
+    + "-" + title.split("-")[1]
+    + "-" + title.split("").pop()
 
-//       </DepositPageContainer>
-
-//     </>
-//   );
+  const minBid = auctionInformation.bidding.symbol == "USDC"
+    ? minBidPrice.toFixed(2)
+    : minBidPrice.toFixed(4)
 
   return (
     <>
@@ -633,12 +660,15 @@ const AuctionPage = () => {
       
       <AuctionDetailedInformation>
         <LiveAuctionItemContainer>
-          <LiveLogoContainer color={colors.asset.WETH}>
-            <WETHLogo height="70px" width="70px"></WETHLogo>
+          <LiveLogoContainer color={color}>
+            <Logo height={logoSize} width={logoSize}></Logo>
           </LiveLogoContainer>
           <AuctionMainDescription>
             <LiveAuctionTitle>
-              ETH-3300-07JAN22-PUT
+              {!loading
+                ? title
+                : loadingText
+              }
             </LiveAuctionTitle>
             <DescriptionThin>
               Expiry: 07 Jan 2022, 08:00AM UTC
@@ -745,7 +775,7 @@ const AuctionPage = () => {
                 <BidHistoryTitle ratio="2">
                   <BidHistoryCaption>QUANTITY</BidHistoryCaption>
                 </BidHistoryTitle>
-                <BidHistoryTitle ratio="3">
+                <BidHistoryTitle ratio="4">
                   <BidHistoryCaption>PRICE PER OTOKEN</BidHistoryCaption>
                 </BidHistoryTitle>
                 <BidHistoryTitle ratio="3">
@@ -759,7 +789,7 @@ const AuctionPage = () => {
                 <BidHistoryLogItem ratio="2">
                   <BidHistoryLogCaption>1000</BidHistoryLogCaption>
                 </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="3">
+                <BidHistoryLogItem ratio="4">
                   <BidHistoryLogCaption>0.0035 WETH</BidHistoryLogCaption>
                 </BidHistoryLogItem>
                 <BidHistoryLogItem ratio="3">
@@ -773,7 +803,7 @@ const AuctionPage = () => {
                 <BidHistoryLogItem ratio="2">
                   <BidHistoryLogCaption>800</BidHistoryLogCaption>
                 </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="3">
+                <BidHistoryLogItem ratio="4">
                   <BidHistoryLogCaption>0.0035 WETH</BidHistoryLogCaption>
                 </BidHistoryLogItem>
                 <BidHistoryLogItem ratio="3">
