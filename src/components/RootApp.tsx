@@ -1,4 +1,5 @@
 import React from "react";
+import useEagerConnect from "../hooks/useEagerConnect";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import styled from "styled-components";
 
@@ -25,7 +26,7 @@ const Root = styled(Container)<{ screenHeight: number}>`
 `;
 
 const RootApp = () => {
-//   useEagerConnect();
+  useEagerConnect();
   const { height: screenHeight } = useScreenSize();
 
   return (

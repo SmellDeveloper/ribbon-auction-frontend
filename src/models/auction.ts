@@ -38,7 +38,26 @@ export type AuctionData = {
   filled: string,
   clearing: string,
   spot: Number,
-  live: Boolean,
+  live: Boolean
+}
+
+export type BidData = {
+  id: string,
+  index: string,
+  auction: string,
+  size: string,
+  payable: string,
+  live: string,
+  claimed: string,
+  hash: string
+}
+
+export interface AugmentedAuctionData extends AuctionData {
+  chainId: Number,
+}
+
+export interface AugmentedBidData extends BidData {
+  chainId: Number,
 }
 
 export interface VaultData {

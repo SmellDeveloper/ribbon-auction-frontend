@@ -68,11 +68,11 @@ const DetailDescription = styled.div`
   align-items: center;
   margin-left: auto;
 
-  & > * {
-    &:nth-last-child(3) {
-      width: 120px;
-    }
-  }
+  // & > * {
+  //   &:nth-last-child(3) {
+  //     width: 130px;
+  //   }
+  // }
 `
 
 const InformationGroup = styled.div`
@@ -82,21 +82,6 @@ const InformationGroup = styled.div`
 const ButtonContainer = styled.div`
   display: flex;
   margin-left: 50px;
-`
-
-const ViewButton = styled.button`
-  font-family: VCR;
-  font-size: 20px; 
-  color: #FFFFFF;
-  background-color: #424242;
-  border-radius: 5px;
-  border: none;
-  padding: 9px 20px 10px 20px;
-  line-height: 20px;
-  vertical-align: text-top;
-  &:hover {
-    opacity: ${theme.hover.opacity};
-  }
 `
 
 const Separator = styled.div`
@@ -114,7 +99,7 @@ const AuctionItem: React.FC<{
   data
 }) => {
   const Logo = getAssetLogo(data.bidding.symbol as Assets)
-  const logoSize = data.bidding.symbol == "WETH"
+  const logoSize = data.bidding.symbol == "WETH" || data.bidding.symbol == "WAVAX"
     ? "30px"
     : "40px"
 
@@ -179,8 +164,8 @@ const AuctionItem: React.FC<{
             </InformationGroup>
             <Separator></Separator>
             <InformationGroup>
-              <Caption>Size: </Caption>
-              <Value>{size} OTOKENS</Value>
+              <Caption>Size (oTokens): </Caption>
+              <Value>{size}</Value>
             </InformationGroup>
             <Separator></Separator>
             <InformationGroup>
@@ -203,8 +188,8 @@ const AuctionItem: React.FC<{
             </InformationGroup>
             <Separator></Separator>
             <InformationGroup>
-              <Caption>Estimated Size: </Caption>
-              <Value>{size} OTOKENS</Value>
+              <Caption>Est. Size (oTokens): </Caption>
+              <Value>{size}</Value>
             </InformationGroup>
             <Separator></Separator>
             <InformationGroup>

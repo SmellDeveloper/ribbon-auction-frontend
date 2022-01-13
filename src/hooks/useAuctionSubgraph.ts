@@ -1,6 +1,6 @@
 export const AuctionGraphql = () => {
   return (
-    `Auctions: auctions {
+    `auctions: auctions {
       id
       option {
         id
@@ -34,6 +34,21 @@ export const AuctionGraphql = () => {
       filled
       clearing
       spot
+    }`
+  )
+}
+
+export const BidsGraphql = (account: string) => {
+  return (
+    `bids: bids (where: {account: "${account}"}) {
+      id
+      index
+      auction
+      size
+      payable
+      live
+      claimed
+      hash
     }`
   )
 }

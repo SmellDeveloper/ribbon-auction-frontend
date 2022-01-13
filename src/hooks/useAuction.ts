@@ -1,5 +1,5 @@
-import { RibbonThetaVault__factory } from "../codegen";
-import { RibbonThetaVaultSTETH__factory } from "../codegen";
+import { RibbonThetaVaultFactory } from "../codegen/RibbonThetaVaultFactory";
+import { RibbonThetaVaultSTETHFactory } from "../codegen/RibbonThetaVaultSTETHFactory";
 import { AuctionAddressMap, AuctionOptions } from "../constants/constants";
 
 export const getVault = (
@@ -15,12 +15,12 @@ export const getVault = (
   
     switch (auctionOption) {
       case "wstETH-call":
-        return RibbonThetaVaultSTETH__factory.connect(
+        return RibbonThetaVaultSTETHFactory.connect(
           AuctionAddressMap[auctionOption].vault!,
           provider
         );
       default:
-        return RibbonThetaVault__factory.connect(
+        return RibbonThetaVaultFactory.connect(
           AuctionAddressMap[auctionOption].vault!,
           provider
         );

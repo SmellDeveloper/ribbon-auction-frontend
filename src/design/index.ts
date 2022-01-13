@@ -88,7 +88,7 @@ export const Title = styled.span<{
   lineHeight?: number;
   letterSpacing?: number;
 }>`
-  color: #000000;
+  color: #FFFFFF;
   font-family: VCR, sans-serif;
   font-style: normal;
   font-weight: normal;

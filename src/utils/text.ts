@@ -13,3 +13,7 @@ export const copyTextToClipboard = (text: string) => {
 
 export const capitalize = (str: string) =>
   str.charAt(0).toUpperCase() + str.substring(1);
+
+export const numberWithCommas = (x: string) =>  {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

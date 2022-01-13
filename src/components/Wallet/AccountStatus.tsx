@@ -271,7 +271,6 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
 }) => {
   const {
     connector,
-    deactivate: deactivateWeb3,
     library,
     active,
     account,
@@ -282,6 +281,7 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
   const [copyState, setCopyState] = useState<"visible" | "hiding" | "hidden">(
     "hidden"
   );
+  console.log(connector)
 
   // Track clicked area outside of desktop menu
   const desktopMenuRef = useRef(null);
@@ -337,13 +337,13 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
     }
   }, [account, chainId]);
 
-  const handleDisconnect = useCallback(async () => {
-    if (connector instanceof WalletConnectConnector) {
-      connector.close();
-    }
-    deactivateWeb3();
-    onCloseMenu();
-  }, [deactivateWeb3, onCloseMenu, connector]);
+  // const handleDisconnect = useCallback(async () => {
+  //   if (connector instanceof WalletConnectConnector) {
+  //     connector.close();
+  //   }
+  //   deactivateWeb3();
+  //   onCloseMenu();
+  // }, [deactivateWeb3, onCloseMenu, connector]);
 
   const renderButtonContent = () =>
     active && account ? (
@@ -388,7 +388,7 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
         >
           {renderButtonContent()}
         </WalletButton>
-        <AnimatePresence>
+        {/* <AnimatePresence>
           <WalletDesktopMenu
             key={isMenuOpen.toString()}
             isMenuOpen={isMenuOpen}
@@ -422,11 +422,11 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
               )}
             {renderMenuItem("DISCONNECT", handleDisconnect)}
           </WalletDesktopMenu>
-        </AnimatePresence>
+        </AnimatePresence> */}
       </WalletContainer>
 
       {/* Mobile Menu */}
-      <WalletMobileOverlayMenu
+      {/* <WalletMobileOverlayMenu
         className="flex-column align-items-center justify-content-center"
         isMenuOpen={isMenuOpen}
         onClick={onCloseMenu}
@@ -449,7 +449,7 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
         <MenuCloseItem role="button" onClick={onCloseMenu}>
           <MenuButton isOpen={true} onToggle={onCloseMenu} />
         </MenuCloseItem>
-      </WalletMobileOverlayMenu>
+      </WalletMobileOverlayMenu> */}
     </AccountStatusContainer>
   );
 };

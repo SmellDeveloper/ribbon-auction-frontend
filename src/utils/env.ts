@@ -7,17 +7,17 @@ export enum CHAINID {
 
 export const SUBGRAPH_URI: Record<number, string> = {
   [CHAINID.ETH_MAINNET]:
-    process.env.REACT_APP_V2_SUBGRAPHQL_URL ||
-    "https://api.thegraph.com/subgraphs/name/ribbon-finance/ribbon-v2",
+    process.env.REACT_APP_MAINNET_SUBGRAPHQL_URL ||
+    "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction",
   [CHAINID.ETH_KOVAN]:
-    process.env.REACT_APP_KOVAN_V2_SUBGRAPHQL_URL ||
-    "https://api.thegraph.com/subgraphs/name/ribbon-finance/ribbon-v2-kovan",
+    process.env.REACT_APP_KOVAN_SUBGRAPHQL_URL ||
+    "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction",
   [CHAINID.AVAX_FUJI]:
     process.env.REACT_APP_FUJI_SUBGRAPHQL_URL ||
-    "https://api.thegraph.com/subgraphs/name/ribbon-finance/ribbon-avax",
+    "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction-avax",
   [CHAINID.AVAX_MAINNET]:
     process.env.REACT_APP_AVAX_SUBGRAPHQL_URL ||
-    "https://api.thegraph.com/subgraphs/name/ribbon-finance/ribbon-avax",
+    "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction-avax",
 };
 
 export const isDevelopment = () => !isStaging() && !isProduction();

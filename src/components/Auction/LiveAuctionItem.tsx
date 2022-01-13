@@ -5,7 +5,6 @@ import {
 } from "../../utils/asset"
 import styled from "styled-components";
 import theme from "../../design/theme";
-import { useCallback } from "react";
 import { AuctionData } from "../../models/auction";
 import { Assets } from "../../store/types";
 import moment from "moment";

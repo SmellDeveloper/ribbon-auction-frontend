@@ -4,7 +4,4 @@
 export type { GnosisEasyAuction } from "./GnosisEasyAuction";
 export type { RibbonThetaVault } from "./RibbonThetaVault";
 export type { RibbonThetaVaultSTETH } from "./RibbonThetaVaultSTETH";
-
-export { GnosisEasyAuction__factory } from "./factories/GnosisEasyAuction__factory";
-export { RibbonThetaVault__factory } from "./factories/RibbonThetaVault__factory";
-export { RibbonThetaVaultSTETH__factory } from "./factories/RibbonThetaVaultSTETH__factory";
+export type { IERC20 } from "./IERC20";

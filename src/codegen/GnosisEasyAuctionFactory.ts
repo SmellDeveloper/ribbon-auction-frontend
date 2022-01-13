@@ -2,12 +2,19 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
+import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type {
-  GnosisEasyAuction,
-  GnosisEasyAuctionInterface,
-} from "../GnosisEasyAuction";
+
+import type { GnosisEasyAuction } from "./GnosisEasyAuction";
+
+export class GnosisEasyAuctionFactory {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): GnosisEasyAuction {
+    return new Contract(address, _abi, signerOrProvider) as GnosisEasyAuction;
+  }
+}
 
 const _abi = [
   {
@@ -864,16 +871,3 @@ const _abi = [
     type: "function",
   },
 ];
-
-export class GnosisEasyAuction__factory {
-  static readonly abi = _abi;
-  static createInterface(): GnosisEasyAuctionInterface {
-    return new utils.Interface(_abi) as GnosisEasyAuctionInterface;
-  }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): GnosisEasyAuction {
-    return new Contract(address, _abi, signerOrProvider) as GnosisEasyAuction;
-  }
-}

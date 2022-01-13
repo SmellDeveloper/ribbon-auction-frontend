@@ -2,12 +2,19 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Signer, utils } from "ethers";
+import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type {
-  RibbonThetaVault,
-  RibbonThetaVaultInterface,
-} from "../RibbonThetaVault";
+
+import type { RibbonThetaVault } from "./RibbonThetaVault";
+
+export class RibbonThetaVaultFactory {
+  static connect(
+    address: string,
+    signerOrProvider: Signer | Provider
+  ): RibbonThetaVault {
+    return new Contract(address, _abi, signerOrProvider) as RibbonThetaVault;
+  }
+}
 
 const _abi = [
   {
@@ -1667,16 +1674,3 @@ const _abi = [
     type: "function",
   },
 ];
-
-export class RibbonThetaVault__factory {
-  static readonly abi = _abi;
-  static createInterface(): RibbonThetaVaultInterface {
-    return new utils.Interface(_abi) as RibbonThetaVaultInterface;
-  }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): RibbonThetaVault {
-    return new Contract(address, _abi, signerOrProvider) as RibbonThetaVault;
-  }
-}

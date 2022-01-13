@@ -109,7 +109,7 @@ const useFetchVaultData = (): VaultData => {
   useEffect(() => {
     doMulticall();
   }, [doMulticall]);
-  console.log(data) // FOR LOGGING ONLY
+  // console.log(data) // FOR LOGGING ONLY
   return data;
 };
 

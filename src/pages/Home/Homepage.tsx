@@ -1,8 +1,7 @@
 import { useWeb3React } from "@web3-react/core";
-import React, { ReactNode, useMemo } from "react";
 import { useHistory } from "react-router";
 import AuctionItem from "../../components/Auction/AuctionItem"
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import useFetchSubgraphData from "../../hooks/useFetchSubgraphData";
 import useTextAnimation from "../../components/Common/useTextAnimation";
 import LiveAuctionItem from "../../components/Auction/LiveAuctionItem";
@@ -29,7 +28,7 @@ const ListTitle = styled.div`
   font-weight: 500;
 `
 
-const EmptyDescriptionContainer = styled.div`
+const LoadingContainer = styled.div`
   font-family: VCR;
   text-transform: uppercase;
   font-size: 14px;
@@ -45,7 +44,7 @@ const Homepage = () => {
   const history = useHistory();
   const { responses, loading } = useFetchSubgraphData();
 
-  responses.sort((a, b) => {
+  responses.auctions.sort((a, b) => {
     return Number(a.end) - Number(b.end)
   })
   
@@ -53,7 +52,7 @@ const Homepage = () => {
   //   return value.live
   // })
 
-  const liveAuction = responses[0]
+  const liveAuction = responses.auctions[0]
 
   const loadingText = useTextAnimation()
 
@@ -67,7 +66,7 @@ const Homepage = () => {
       <ListTitle>Upcoming Auctions</ListTitle>
       <ListContainer>
       {!loading
-          ? responses.slice(0,5).reverse().map((data) => {
+          ? responses.auctions.slice(0,5).reverse().map((data) => {
 
             return (
               <AuctionItem 
@@ -76,14 +75,14 @@ const Homepage = () => {
               ></AuctionItem>
             )
           })
-          : <EmptyDescriptionContainer>{loadingText}</EmptyDescriptionContainer>
+          : <LoadingContainer>{loadingText}</LoadingContainer>
         }
       </ListContainer>
 
       <ListTitle>Recent Auctions</ListTitle>
       <ListContainer>
         {!loading
-          ? responses.reverse().map((data) => {
+          ? responses.auctions.reverse().map((data) => {
 
             return (
               <AuctionItem 
@@ -92,7 +91,7 @@ const Homepage = () => {
               ></AuctionItem>
             )
           })
-          : <EmptyDescriptionContainer>{loadingText}</EmptyDescriptionContainer>
+          : <LoadingContainer>{loadingText}</LoadingContainer>
         }
       </ListContainer>
     </>

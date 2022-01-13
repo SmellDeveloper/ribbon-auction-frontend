@@ -39,12 +39,15 @@ import {
 //   vaultPriceHistoryGraphql,
 //   resolveVaultPriceHistorySubgraphResponse,
 // } from "./useVaultPerformanceUpdate";
-import { AuctionGraphql } from "./useAuctionSubgraph"
+import { BidsGraphql, AuctionGraphql } from "./useAuctionSubgraph"
 import { usePendingTransactions } from "./pendingTransactionsContext";
+import { SUBGRAPHS } from "../constants/constants";
+import { SUBGRAPH_URI } from "../utils/env";
+import { AuctionData, AugmentedAuctionData, AugmentedBidData, BidData } from "../models/auction";
 
 const useFetchSubgraphData = () => {
-  const { account: account, chainId } = useWeb3React();
-  // const account = impersonateAddress || acc;
+  const { account: web3Account, chainId } = useWeb3React();
+  const account = "0x160d1ab4af9463df0249f5e720c42ecb3f330fc0"
   const [data, setData] =
     useState<SubgraphDataContextType>(defaultSubgraphData);
   const { transactionsCounter } = usePendingTransactions();
@@ -65,17 +68,59 @@ const useFetchSubgraphData = () => {
     });
 
     const allSubgraphResponses = await Promise.all(
-      [await axios.post(
-        "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction",
-        {
-          query: `{
-              ${AuctionGraphql()}
-          }`
-        }
-      )
-      ],
+      SUBGRAPHS.map(async (chainId) => {
+        const response = await axios.post(
+          SUBGRAPH_URI[chainId],
+          {
+            query: `{
+                ${
+                  account
+                    ?`
+                      ${AuctionGraphql()}
+                      ${BidsGraphql(account)}
+                    `
+                    : `${AuctionGraphql()}`
+                }
+            }`
+          }
+        );
+        return {chainId: chainId,
+          data: response.data.data};
+      })
     );
+    
+    const auctions = allSubgraphResponses.map((data) => {
+      return data.data.auctions.map((auction: AuctionData) => {
+        const augmentedAuction: any = auction
+        augmentedAuction.chainId = data.chainId
+        return augmentedAuction as AugmentedAuctionData
+      })
+    }).flat()
 
+    const bids = allSubgraphResponses.map((data) => {
+      return data.data.bids.map((bid: BidData) => {
+        const augmentedBid: any = bid
+        augmentedBid.chainId = data.chainId
+        return augmentedBid as AugmentedBidData
+      })
+    }).flat()
+
+    // if (account) {
+    //   const bids = allSubgraphResponses.map((data) => {
+    //     return data.data.bids.map((auction: AuctionData) => {
+    //       const augmentedAuction: any = auction
+    //       augmentedAuction.chainId = data.chainId
+    //       return augmentedAuction as AugmentedAuctionData
+    //     })
+    //   }).flat()
+    // }
+
+    const responses = {
+      auctions: auctions,
+      bids: bids
+    }
+    // const organizedResponse
+    // console.log(responses)
     // // Group all the responses of the same version together
     // // Merge them without overriding the previous properties
     // const responsesAcrossVersions: Record<VaultVersion, any> =
@@ -110,7 +155,7 @@ const useFetchSubgraphData = () => {
       if (counter === currentCounter) {
         setData((prev) => ({
           ...prev,
-          responses: allSubgraphResponses[0].data.data.Auctions,
+          responses: responses,
           loading: false,
         }));
       }

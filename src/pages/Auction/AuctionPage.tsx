@@ -1,54 +1,32 @@
 import { useWeb3React } from "@web3-react/core";
-import React, { ReactNode, useMemo } from "react";
+import { useCallback } from "react";
 import { useHistory } from "react-router";
 import {
-  WBTCLogo,
-  WETHLogo
-} from "../../assets/icons/tokens"
-import {
-  TimerIcon,
   ArrowIcon
 } from "../../assets/icons/icons"
-
-
-import {
-  BaseLink,
-  Title,
-} from "../../design";
-// import PerformanceSection from "../DepositPage/PerformanceSection";
-// import { isProduction } from "shared/lib/utils/env";
+import AuctionInformation from "../../components/Auction/AuctionInformation";
 import { Redirect } from "react-router-dom";
-import sizes from "../../design/sizes";
-import styled, { keyframes } from "styled-components";
-// import usePullUp from "../../hooks/usePullUp";
-import { Container } from "react-bootstrap";
+import styled from "styled-components";
 import theme from "../../design/theme";
 import colors from "../../design/colors";
-import * as fs from "fs";
 import useTextAnimation from "../../hooks/useTextAnimation";
 import useAuctionOption from "../../hooks/useVaultOption";
-import useFetchSubgraphData from "../../hooks/useFetchSubgraphData";
 import { getAssetColor, getAssetLogo } from "../../utils/asset";
 import moment from "moment";
 import { Assets } from "../../store/types";
 import { formatUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
-import { decodeOrder } from "../../utils/order";
-// import TreasuryActionForm from "../../components/Vault/VaultActionsForm/TreasuryActionsForm";
-// import VaultInformation from "../../components/Deposit/VaultInformation";
-// import { useWhitelist } from "../../hooks/useWhitelist";
-// import { treasuryCopy } from "../../components/Product/treasuryCopies";
+import { useAuctionsData, useBidsData } from "../../hooks/subgraphDataContext";
+import { NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
+import { CHAINID } from "../../utils/env";
+import { switchChains } from "../../utils/chainSwitching";
+import { AnimatePresence } from "framer-motion";
+import { useUserBalance } from "../../hooks/web3DataContext";
+import { impersonateAddress } from "../../utils/development";
 
 const StatusText = styled.span`
   font-size: 20px;
   font-weight: 300;
-`
-
-const AuctionDetailedInformation = styled.div`
-  border-radius: 5px;
-  background-color: #FFFFFF;
-  border: solid 0.5px #D1D1D1;
-  margin-bottom: 30px;
 `
 
 const ListContainer = styled.div`
@@ -59,17 +37,32 @@ const ListContainer = styled.div`
   min-height: 200px;
   margin-bottom: 40px;
 `
-const ListTitle = styled.div`
-  margin-bottom: 10px;
-  font-size: 20px;
-  font-weight: 500;
-`
 
 const EmptyDescriptionContainer = styled.div`
   font-size: 14px;
   display: flex;
   color: #8E8E8E;
   height: 140px;
+  justify-content: center;
+  align-items: center;
+`
+
+const EmptyBidsText = styled.div`
+  font-size: 14px;
+  display: flex;
+  color: #8E8E8E;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+`
+
+const LoadingContainer = styled.div`
+  font-family: VCR;
+  text-transform: uppercase;
+  font-size: 40px;
+  display: flex;
+  color: #8E8E8E;
+  height: 300px;
   justify-content: center;
   align-items: center;
 `
@@ -83,104 +76,6 @@ const WrongNetworkDescriptionContainer = styled.div`
   align-items: center;
 `
 
-const AuctionItemContainer = styled.div`
-  display: flex;
-  height: 75px;
-  padding: 17px;
-  border-radius: 2px;
-  background-color: #FFFFFF;
-`
-
-const LiveAuctionItemContainer = styled.div`
-  display: flex;
-  height: 125px;
-  padding: 17px;
-  width: 100%;
-  border-bottom: solid 1px #D1D1D1;
-`
-
-const LogoContainer = styled.div<{ color: string }>`
-  height: 41px;
-  min-width: 41px;
-  margin-right: 12px;
-  border: solid 1px ${(props) => props.color};
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-`
-
-const LiveLogoContainer = styled.div<{ color: string }>`
-  height: 91px;
-  min-width: 91px;
-  margin-right: 20px;
-  border: solid 1px ${(props) => props.color};
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-`
-
-const AuctionMainDescription = styled.div`
-  display: block;
-  margin-right: 20px;
-`
-
-const AuctionTitle = styled.div`
-  font-family: VCR;
-  font-size: 24px;
-  line-height: 20px;
-  margin-bottom: 4px;
-`
-
-const DescriptionThin = styled.div`
-  font-size: 20px;
-  font-weight: 300;
-`
-
-const DescriptionThick = styled.div`
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 16px;
-`
-
-const InformationCaption = styled.div`
-  font-size: 16px;
-  font-weight: 300;
-  text-align: center;
-`
-
-const InformationValue = styled.div`
-  font-family: VCR;
-  font-size: 24px;
-  font-weight: 500;
-  line-height: 20px;
-  text-align: center;
-  color: ${colors.asset.WETH};
-`
-
-const AdditionalInformationCaption = styled.div`
-  font-size: 15px;
-  font-weight: 300;
-  text-align: center;
-`
-
-const AdditionalInformationValue = styled.div`
-  font-family: VCR;
-  font-size: 20px;
-  font-weight: 500;
-  text-align: center;
-  margin-top: -7px;
-`
-
-const AllocationInformationCaption = styled.div`
-  font-size: 12px;
-  font-weight: 300;
-  text-align: center;
-`
-
 const BidHistoryCaption = styled.div`
   font-size: 12px;
   font-weight: 600;
@@ -192,82 +87,6 @@ const BidHistoryLogCaption = styled.div`
   font-size: 12px;
   font-weight: 300;
   text-align: left;
-`
-
-const AllocationInformationValue = styled.div`
-  font-family: VCR;
-  font-size: 20px;
-  font-weight: 500;
-  text-align: center;
-  margin-top: -7px;
-  color: #16CEB9;
-`
-
-const Timer = styled.div`
-  display: flex;
-  height: 100px;
-  font-family: VCR;
-  font-size: 30px;
-  text-align: center;
-  align-items: center;
-`
-
-const TimerText = styled.div`
-  margin-top: -2px;
-  margin-left: 10px;
-  color: ${colors.asset.WETH};
-`
-
-const StackedAuctionInformation = styled.div`
-  display: block;
-  margin-left: auto;
-`
-
-const AuctionInformation = styled.div`
-  display: flex;
-  padding: 3px;
-  align-items: center;
-  margin-left: auto;
-`
-
-const InformationItem = styled.div`
-  display: block
-`
-
-const LiveInformationItem = styled.div`
-  display: block;
-  min-width: 100px;
-  margin-bottom: 5px;
-  margin-left: 60px;
-`
-
-const AdditionalInformationItem = styled.div`
-  display: block;
-  flex: 1 1 0;
-  width: auto;
-  border-left: solid 1px #D1D1D1;
-  padding: 10px;
-`
-
-const FirstAdditionalInformationItem = styled.div`
-  display: block;
-  flex: 1 1 0;
-  width: auto;
-  padding: 10px;
-`
-
-const AllocationInformationItem = styled.div`
-  display: block;
-  flex: 1 1 0;
-  width: auto;
-  padding: 10px;
-`
-
-const FirstAllocationInformationItem = styled.div`
-  display: block;
-  flex: 1 1 0;
-  width: auto;
-  padding: 10px;
 `
 
 const BidHistoryTitle = styled.div<{ ratio: string }>`
@@ -284,11 +103,6 @@ const BidHistoryLogItem = styled.div<{ ratio: string }>`
   padding: 0px 30px;
 `
 
-const ButtonContainer = styled.div`
-  display: flex;
-  margin-left: 80px;
-`
-
 const BidButtonContainer = styled.div`
   display: flex;
   align-items: center;
@@ -301,18 +115,6 @@ const WrongNetworkButtonContainer = styled.div`
 const WrongNetworkText = styled.div`
   text-align: center;
   margin-bottom: 5px;
-`
-
-const ViewButton = styled.button`
-  font-family: VCR;
-  font-size: 20px; 
-  color: #FFFFFF;
-  background-color: #424242;
-  border-radius: 5px;
-  border: none;
-  padding: 9px 20px 10px 20px;
-  line-height: 20px;
-  vertical-align: text-top;
 `
 
 const ChangeNetworkButton = styled.button`
@@ -345,36 +147,12 @@ const BidButton = styled.button`
   }
 `
 
-const Separator = styled.div`
-  width: 1px;
-  height: 20px;
-  background-color: #D3D3D3;
-  margin: 0px 20px;
-`
-
-const LiveContainer = styled.div`
-  background-color: #E9FFF6;
-  width: calc(100% + 2*30px);
-  border-radius: 7px;
-  padding: 15px 30px 30px 30px;
-  margin: 0px -30px;
-  min-height: 165px;
-  margin-bottom: 40px;
-`
-
-const LiveAuctionTitle = styled.div`
-  font-family: VCR;
-  font-size: 30px;
-  margin-top: 4px;
-  margin-bottom: -5px;
-`
-
-const LiveTitle = styled.div`
+const StatusTitle = styled.div`
   font-size: 20px;
   font-weight: 500;
 `
 
-const LiveTitleContainer = styled.div`
+const StatusTitleContainer = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 10px;
@@ -390,40 +168,10 @@ const IndicatorContainer = styled.div`
   width: 35px;
   height: 35px;
 `
-const AdditionalDetailsContainer = styled.div`
-  display: flex;
-`
-
-const InnerCircle = styled.div`
-  margin-top: 22.5%;
-  margin-left: 22.5%;
-  position: absolute;
-  width: 55%;
-  height: 55%;
-  background-color: #00FF47;
-  border-radius: 50%;
-`
-
-const OuterCircle = styled.div`
-  margin-top: 7.5%;
-  margin-left: 7.5%;
-  position: absolute;
-  width: 85%;
-  height: 85%;
-  border: solid 1px rgba(0, 255, 71, 0.50);
-  border-radius: 50%;
-`
-
-const OuterOuterCircle = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: solid 1px rgba(0, 255, 71, 0.36);
-  border-radius: 50%;
-`
 
 const WalletModule = styled.div`
   display: flex;
+  justify-content: center;
   z-index: 1000;
 `
 
@@ -439,26 +187,10 @@ const BidInformation = styled.div`
   margin-left: 30px;
 `
 
-const InformationBlock = styled.div`
-  color: #8D8D8D;
-  display: block;
-  background-color: #FFFFFF;
-  border-radius: 5px;
-  padding: 25px 30px 30px 30px;
-`
-
 const BidHistoryBlock = styled.div`
   background-color: #FFFFFF;
   border-radius: 5px;
   padding-bottom: 10px;
-`
-
-const AllocationBlock = styled.div`
-  margin-bottom: 20px;
-  display: flex;
-  background-color: #FFFFFF;
-  border-radius: 5px;
-  border: solid 2px #16CEB950;
 `
 
 const InputBlock = styled.div`
@@ -486,11 +218,12 @@ const InputCaption = styled.div`
 
 const BidInformationCaption = styled.div`
   font-family: VCR;
-  border-radius: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 13px;
   color: #464646;
   font-size: 20px;
+  line-height: 16px;
   font-weight: 600;
+
 `
 
 const SecondInputCaption = styled.div`
@@ -513,6 +246,10 @@ const Input = styled.input`
   height: 50px;
   padding: 10px;
   font-size: 24px;
+  
+  &::placeholder {
+    opacity: 0.2; 
+  }
 `
 
 const BidHistoryTitleColumn = styled.div`
@@ -583,239 +320,207 @@ const Blob = styled.div`
 
 const AuctionPage = () => {
 //   usePullUp();
-  const { active } = useWeb3React();
+  const { active, chainId: currentChainId, library } = useWeb3React();
   const history = useHistory();
   const { auction, auctionTitle } = useAuctionOption();
-  const { responses, loading } = useFetchSubgraphData();
-  
-  const auctionId = auctionTitle!.split("-")[0]
-  const logoAsset = auctionTitle!.split("-")[1]
-  const color = getAssetColor(logoAsset as Assets)
-  const Logo = getAssetLogo(logoAsset as Assets)
+  const [auctionId, underlying, strike, type] = auctionTitle!.split("-")
 
-  const logoSize = logoAsset == "WETH"
+  const color = getAssetColor(underlying as Assets)
+  const Logo = getAssetLogo(underlying as Assets)
+
+  const { data: balances, loading: balanceLoading } = useUserBalance()
+  const { data: auctions, loading: auctionsLoading } = useAuctionsData(auctionId)
+  const { data: bids, loading: bidsLoading } = useBidsData(auctionId)
+  const data = auctions[0]
+
+  const loading = auctionsLoading && bidsLoading
+  
+  const logoSize = underlying == "WETH"
       ? "70px"
       : "85px"
-  
-  const auctionInformation = useMemo(() => {
-    return responses.filter((value) => {
-      return value.id == auctionId
-    }).pop()
-  }, [responses])
 
   const loadingText = useTextAnimation()
+
+  const handleSwitchChain = useCallback(
+    async (chainId: number) => {
+      if (library && currentChainId !== chainId) {
+        await switchChains(library, chainId);
+      }
+    },
+    [library, currentChainId]
+  );
+
+  const renderBiddingModule = () => {
+    return (
+      <BiddingModal>
+        <InputBlock>
+          <InputCaption>OTOKEN QUANTITY</InputCaption>
+          <Input type="number" placeholder="0.0" ></Input>
+          <SecondInputCaption>PRICE PER OTOKEN (IN {data.bidding.symbol})</SecondInputCaption>
+          <Input type="number" placeholder="0.0"></Input>
+        </InputBlock>
+        <TradeSymbol><ArrowIcon color="#D3D3D3"></ArrowIcon></TradeSymbol>
+        <SecondInputBlock>
+          <InputCaption>TOTAL PAYABLE</InputCaption>
+          <Input type="number" placeholder="0.0"></Input>
+          <BalanceText>
+            {"Wallet Balance: " 
+            + parseFloat(formatUnits(balances[data.bidding.symbol as Assets], data.bidding.decimals.toString())).toFixed(4)
+            + " " + data.bidding.symbol} 
+          </BalanceText>
+        </SecondInputBlock>
+        <BidButtonContainer>
+          <BidButton>PLACE BID</BidButton>
+        </BidButtonContainer>
+      </BiddingModal>
+    )
+  }
+
+  const renderBid = (
+    index: number, 
+    quantity: string, 
+    price: string, 
+    total: string, 
+    symbol: string
+  ) => {
+    return (
+      <BidHistoryLogs>
+        <BidHistoryLogItem ratio="1">
+          <BidHistoryLogCaption>{index}</BidHistoryLogCaption>
+        </BidHistoryLogItem>
+        <BidHistoryLogItem ratio="2">
+          <BidHistoryLogCaption>{quantity}</BidHistoryLogCaption>
+        </BidHistoryLogItem>
+        <BidHistoryLogItem ratio="4">
+          <BidHistoryLogCaption>{price} {symbol}</BidHistoryLogCaption>
+        </BidHistoryLogItem>
+        <BidHistoryLogItem ratio="3">
+          <BidHistoryLogCaption>{total} {symbol}</BidHistoryLogCaption>
+        </BidHistoryLogItem>
+      </BidHistoryLogs>
+    )
+  }
+
+  const renderWalletModule = useCallback(() => {
+    return (
+      (
+        <>
+        {renderBiddingModule()}
+  <BidInformation>
+      <BidInformationCaption>MY BIDS</BidInformationCaption>
+        <BidHistoryBlock>
+          <BidHistoryTitleColumn>
+            <BidHistoryTitle ratio="1">
+              <BidHistoryCaption>NO</BidHistoryCaption>
+            </BidHistoryTitle>
+            <BidHistoryTitle ratio="2">
+              <BidHistoryCaption>QUANTITY</BidHistoryCaption>
+            </BidHistoryTitle>
+            <BidHistoryTitle ratio="4">
+              <BidHistoryCaption>PRICE PER OTOKEN</BidHistoryCaption>
+            </BidHistoryTitle>
+            <BidHistoryTitle ratio="3">
+              <BidHistoryCaption>TOTAL PAYABLE</BidHistoryCaption>
+            </BidHistoryTitle>
+          </BidHistoryTitleColumn>
+          {bids.length > 0
+            ? bids.sort((a, b) => {
+                return Number(a.index) - Number(b.index)
+              }).map((bid, index) => {
+                const quantity = parseFloat(formatUnits(
+                  BigNumber.from(bid.size), 8
+                )).toFixed(2)
+                const payable = parseFloat(formatUnits(
+                  BigNumber.from(bid.payable), data.bidding.decimals.toString()
+                )).toFixed(4)
+                const price = parseFloat(formatUnits(
+                  BigNumber.from(bid.payable).mul(10**8).div(bid.size), data.bidding.decimals.toString()
+                )).toFixed(4)
+                
+                return renderBid(index+1, quantity, price, payable, "WBTC")
+              })
+            : <EmptyBidsText>You have not made any bids.</EmptyBidsText>
+          }
+        </BidHistoryBlock>
+        </BidInformation>
+        </>)
+    )
+  }, [bids, data])
   
-  const title = useMemo(() => {
-    return auctionInformation.option.symbol.split("/")[1]
-  }, [auctionInformation]
-
-  const time = moment.unix(Number(auctionInformation.end)).format("DD MMM YY, HH:mm [UTC]")
-  const size = parseFloat(
-    formatUnits(auctionInformation.size, 8)
-  ).toFixed(0)
-  const filled = parseFloat(
-    formatUnits(BigNumber.from(auctionInformation.filled).mul(10**8).div(auctionInformation.size), 6)
-  ).toFixed(0)
-  const clearingOrder = decodeOrder(auctionInformation.clearing)
-
-  const clearingPrice = parseFloat(formatUnits(
-    clearingOrder.sellAmount
-      .mul(10**8)
-      .div(clearingOrder.buyAmount)
-    , auctionInformation.bidding.decimals.toString())
-  )
-
-  const clearing = auctionInformation.bidding.symb
-  ol == "USDC"
-    ? clearingPrice.toFixed(2)
-    : clearingPrice.toFixed(4)
-
-  const minBidPrice = parseFloat(
-    formatUnits(
-        BigNumber.from(auctionInformation.minimum)
-            .mul(10**8)
-            .div(auctionInformation.size)
-    , auctionInformation.bidding.decimals.toString())
-  )
-  
-  const link = "/auction/" + auctionInformation.id
-    + "-" + title.split("-")[0]
-    + "-" + title.split("-")[1]
-    + "-" + title.split("").pop()
-
-  const minBid = auctionInformation.bidding.symbol == "USDC"
-    ? minBidPrice.toFixed(2)
-    : minBidPrice.toFixed(4)
-
-  return (
-    <>
-      <LiveTitleContainer>
-        {/* <LiveTitle><StatusText>STATUS:</StatusText> STARTING IN 8 MINUTES</LiveTitle> */}
-        {/* <LiveTitle><StatusText>STATUS:</StatusText> CONCLUDED</LiveTitle> */}
-        <LiveTitle><StatusText>STATUS:</StatusText> LIVE</LiveTitle>
-        <IndicatorContainer>
-          <Blob></Blob>
-        </IndicatorContainer>
-      </LiveTitleContainer>
+  if (!loading) {
+    if (!data) {
+      return <Redirect to="/" />;
+    } else {
+      const type = data.option.put ? "P" : "C"
+      const time = moment.unix(Number(data.option.expiry)).format("DDMMMYY").toUpperCase()
       
-      <AuctionDetailedInformation>
-        <LiveAuctionItemContainer>
-          <LiveLogoContainer color={color}>
-            <Logo height={logoSize} width={logoSize}></Logo>
-          </LiveLogoContainer>
-          <AuctionMainDescription>
-            <LiveAuctionTitle>
-              {!loading
-                ? title
-                : loadingText
+      if (auctionTitle != `${auctionId}-${underlying}-${time}-${type}`) {
+        return <Redirect to="/" />;
+      }
+
+      return (
+        <AnimatePresence>
+          <StatusTitleContainer>
+            {/* <StatusTitle><StatusText>STATUS:</StatusText> STARTING IN 8 MINUTES</StatusTitle> */}
+            <StatusTitle><StatusText>{"STATUS:"}</StatusText> 
+              {" "}
+              {data.live
+                ? (
+                  <IndicatorContainer>
+                    <Blob></Blob>
+                  </IndicatorContainer>
+                )
+                : "CONCLUDED"
               }
-            </LiveAuctionTitle>
-            <DescriptionThin>
-              Expiry: 07 Jan 2022, 08:00AM UTC
-            </DescriptionThin>
-          </AuctionMainDescription>
-          <AuctionInformation>
-            <LiveInformationItem>
-              <InformationCaption>Current Price per oToken: </InformationCaption>
-              <InformationValue>0.0035 WETH</InformationValue>
-            </LiveInformationItem>
-            <LiveInformationItem>
-              <InformationCaption>Filled: </InformationCaption>
-              <InformationValue>60%</InformationValue>
-            </LiveInformationItem>
-            <LiveInformationItem>
-              <Timer><TimerIcon color={colors.asset.WETH} height="25px" width="25px"></TimerIcon><TimerText>14:21</TimerText></Timer>
-              {/* <Timer><TimerIcon color={colors.asset.WETH} height="25px" width="25px"></TimerIcon><TimerText>CLOSED</TimerText></Timer> */}
-              {/* <Timer><TimerIcon color={colors.asset.WETH} height="25px" width="25px"></TimerIcon><TimerText>--:--</TimerText></Timer> */}
-            </LiveInformationItem>
-          </AuctionInformation>
-        </LiveAuctionItemContainer>
-        <AdditionalDetailsContainer>
-          <FirstAdditionalInformationItem>
-            <AdditionalInformationCaption>Size (oTokens): </AdditionalInformationCaption>
-            <AdditionalInformationValue>8893</AdditionalInformationValue>
-          </FirstAdditionalInformationItem>
-          <AdditionalInformationItem>
-            <AdditionalInformationCaption>Min. Bid (per oToken): </AdditionalInformationCaption>
-            <AdditionalInformationValue>0.0035 WETH</AdditionalInformationValue>
-          </AdditionalInformationItem>
-          <AdditionalInformationItem>
-            <AdditionalInformationCaption>Strike Price: </AdditionalInformationCaption>
-            <AdditionalInformationValue>$250.00</AdditionalInformationValue>
-          </AdditionalInformationItem>
-          <AdditionalInformationItem>
-            <AdditionalInformationCaption>Current Spot Price: </AdditionalInformationCaption>
-            <AdditionalInformationValue>$225.12</AdditionalInformationValue>
-          </AdditionalInformationItem>
-          <AdditionalInformationItem>
-            <AdditionalInformationCaption>Underlying Token: </AdditionalInformationCaption>
-            <AdditionalInformationValue>WETH</AdditionalInformationValue>
-          </AdditionalInformationItem>
-          <AdditionalInformationItem>
-            <AdditionalInformationCaption>Bidding Token: </AdditionalInformationCaption>
-            <AdditionalInformationValue>WETH</AdditionalInformationValue>
-          </AdditionalInformationItem>
-        </AdditionalDetailsContainer>
-      </AuctionDetailedInformation>
-      
-      <ListContainer>
-        {/* <EmptyDescriptionContainer>Connect your wallet to make a bid.</EmptyDescriptionContainer> */}
-        {/* <EmptyDescriptionContainer>Auction will start soon.</EmptyDescriptionContainer> */}
-        {/* <EmptyDescriptionContainer>Connect your wallet to claim.</EmptyDescriptionContainer> */}
-        {/* <WrongNetworkDescriptionContainer>
-        <WrongNetworkButtonContainer>
-          <WrongNetworkText>
-            Wrong Network
-          </WrongNetworkText>
-          <WrongNetworkButtonContainer>
-            <ChangeNetworkButton>CONNECT TO ETHEREUM MAINNET</ChangeNetworkButton>
-          </WrongNetworkButtonContainer>
-        </WrongNetworkButtonContainer>
-        </WrongNetworkDescriptionContainer> */}
-        <WalletModule>
-          <BiddingModal>
-            <InputBlock>
-              <InputCaption>OTOKEN QUANTITY</InputCaption>
-              <Input type="number" placeholder="0.0"></Input>
-              <SecondInputCaption>PRICE PER OTOKEN (IN AAVE)</SecondInputCaption>
-              <Input type="number" placeholder="0.0"></Input>
-            </InputBlock>
-            <TradeSymbol><ArrowIcon color="#D3D3D3"></ArrowIcon></TradeSymbol>
-            <SecondInputBlock>
-              <InputCaption>TOTAL PAYABLE</InputCaption>
-              <Input type="number" placeholder="0.0"></Input>
-              <BalanceText>Wallet Balance: 10 WETH</BalanceText>
-            </SecondInputBlock>
-            <BidButtonContainer>
-              <BidButton>PLACE BID</BidButton>
-            </BidButtonContainer>
-          </BiddingModal>
-          <BidInformation>
-            <BidInformationCaption>MY ALLOCATION</BidInformationCaption>
-            <AllocationBlock>
-              <FirstAllocationInformationItem>
-                <AllocationInformationCaption>Quantity (oTokens): </AllocationInformationCaption>
-                <AllocationInformationValue>8893</AllocationInformationValue>
-              </FirstAllocationInformationItem>
-              <AllocationInformationItem>
-                <AllocationInformationCaption>Price per oToken: </AllocationInformationCaption>
-                <AllocationInformationValue>0.0035 WETH</AllocationInformationValue>
-              </AllocationInformationItem>
-              <AllocationInformationItem>
-                <AllocationInformationCaption>Total Payable: </AllocationInformationCaption>
-                <AllocationInformationValue>31.12 WETH</AllocationInformationValue>
-              </AllocationInformationItem>
-            </AllocationBlock>
-            <BidInformationCaption>MY BIDS</BidInformationCaption>
-            <BidHistoryBlock>
-              <BidHistoryTitleColumn>
-                <BidHistoryTitle ratio="1">
-                  <BidHistoryCaption>NO</BidHistoryCaption>
-                </BidHistoryTitle>
-                <BidHistoryTitle ratio="2">
-                  <BidHistoryCaption>QUANTITY</BidHistoryCaption>
-                </BidHistoryTitle>
-                <BidHistoryTitle ratio="4">
-                  <BidHistoryCaption>PRICE PER OTOKEN</BidHistoryCaption>
-                </BidHistoryTitle>
-                <BidHistoryTitle ratio="3">
-                  <BidHistoryCaption>TOTAL PAYABLE</BidHistoryCaption>
-                </BidHistoryTitle>
-              </BidHistoryTitleColumn>
-              <BidHistoryLogs>
-                <BidHistoryLogItem ratio="1">
-                  <BidHistoryLogCaption>1</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="2">
-                  <BidHistoryLogCaption>1000</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="4">
-                  <BidHistoryLogCaption>0.0035 WETH</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="3">
-                  <BidHistoryLogCaption>4.20 WETH</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-              </BidHistoryLogs>
-              <BidHistoryLogs>
-                <BidHistoryLogItem ratio="1">
-                  <BidHistoryLogCaption>2</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="2">
-                  <BidHistoryLogCaption>800</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="4">
-                  <BidHistoryLogCaption>0.0035 WETH</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-                <BidHistoryLogItem ratio="3">
-                  <BidHistoryLogCaption>3.80 WETH</BidHistoryLogCaption>
-                </BidHistoryLogItem>
-              </BidHistoryLogs>
-            </BidHistoryBlock>
-          </BidInformation>
-        </WalletModule>
-      </ListContainer>
-    </>
-  )
+            </StatusTitle>
+            
+          </StatusTitleContainer>
+    
+          <AuctionInformation data={data}></AuctionInformation>
+          
+          <ListContainer>
+            <WalletModule>
+              
+                {active
+                  ? currentChainId == data.chainId
+                    ? renderWalletModule()
+                    : (<WrongNetworkDescriptionContainer>
+                      <WrongNetworkButtonContainer>
+                        <WrongNetworkText>
+                          Wrong Network
+                        </WrongNetworkText>
+                        <WrongNetworkButtonContainer>
+                          <ChangeNetworkButton onClick={() => handleSwitchChain(data.chainId as number)}>
+                            CONNECT TO {NETWORK_ALT_DESCRIPTION[data.chainId as CHAINID]}
+                          </ChangeNetworkButton>
+                        </WrongNetworkButtonContainer>
+                      </WrongNetworkButtonContainer>
+                      </WrongNetworkDescriptionContainer>)
+                  : <EmptyDescriptionContainer>Connect your wallet to make a bid.</EmptyDescriptionContainer>
+                }
+                {/* <BidInformationCaption>MY ALLOCATION</BidInformationCaption> */}
+                {/* <AllocationBlock>
+                  <FirstAllocationInformationItem>
+                    <AllocationInformationCaption>Quantity (oTokens): </AllocationInformationCaption>
+                    <AllocationInformationValue>8893</AllocationInformationValue>
+                  </FirstAllocationInformationItem>
+                  <AllocationInformationItem>
+                    <AllocationInformationCaption>Price per oToken: </AllocationInformationCaption>
+                    <AllocationInformationValue>0.0035 WETH</AllocationInformationValue>
+                  </AllocationInformationItem>
+                  <AllocationInformationItem>
+                    <AllocationInformationCaption>Total Payable: </AllocationInformationCaption>
+                    <AllocationInformationValue>31.12 WETH</AllocationInformationValue>
+                  </AllocationInformationItem>
+                </AllocationBlock> */}
+            </WalletModule>
+          </ListContainer>
+        </AnimatePresence>
+      )
+    }
+  } else {
+    return <LoadingContainer>{loadingText}</LoadingContainer>
+  }
 };
 
 export default AuctionPage;

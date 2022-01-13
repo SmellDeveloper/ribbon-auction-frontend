@@ -119,7 +119,7 @@ export const useFetchAssetsPrice = (
       }
     };
   }, [fetchAssetsPrices, poll, pollingFrequency]);
-  console.log(data) // FOR LOGGING ONLY
+  // console.log(data) // FOR LOGGING ONLY
   return { data, loading };
 };
 

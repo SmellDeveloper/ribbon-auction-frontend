@@ -1,5 +1,5 @@
-import React, { ReactElement } from "react";
-import { AuctionData } from "../models/auction";
+import React, { ReactElement, useContext } from "react";
+import { AuctionData, AugmentedAuctionData, AugmentedBidData, BidData } from "../models/auction";
 // import {
 //   ERC20TokenAccountSubgraphData,
 //   ERC20TokenSubgraphData,
@@ -18,12 +18,18 @@ import { AuctionData } from "../models/auction";
 import useFetchSubgraphData from "./useFetchSubgraphData";
 
 export type SubgraphDataContextType = {
-  responses: AuctionData[];
+  responses: {
+    auctions: AugmentedAuctionData[];
+    bids: AugmentedBidData[]
+  };
   loading: boolean;
 };
 
 export const defaultSubgraphData = {
-  responses: [],
+  responses: {
+    auctions: [],
+    bids: []
+  },
   loading: true,
 };
 
@@ -39,4 +45,30 @@ export const SubgraphDataContextProvider: React.FC<{ children: ReactElement }> =
         {children}
       </SubgraphDataContext.Provider>
     );
+  };
+
+  export const useAuctionsData = (auctionId: string) => {
+    const contextData = useContext(SubgraphDataContext);
+
+    const auctionInformation = contextData.responses.auctions.filter((value) => {
+        return value.id == auctionId
+      })
+  
+    return {
+      data: auctionInformation,
+      loading: contextData.loading,
+    };
+  };
+
+  export const useBidsData = (auctionId: string) => {
+    const contextData = useContext(SubgraphDataContext);
+
+    const bids = contextData.responses.bids.filter((value) => {
+        return value.auction == auctionId
+      })
+  
+    return {
+      data: bids,
+      loading: contextData.loading,
+    };
   };

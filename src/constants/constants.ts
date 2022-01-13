@@ -1,6 +1,5 @@
 import {
   CHAINID,
-  SUBGRAPH_URI,
   getSubgraphqlURI,
   isDevelopment,
 } from "../utils/env";
@@ -24,6 +23,13 @@ export const READABLE_NETWORK_NAMES: Record<CHAINID, string> = {
   [CHAINID.AVAX_FUJI]: "Fuji",
 };
 
+export const NETWORK_ALT_DESCRIPTION: Record<CHAINID, string> = {
+  [CHAINID.ETH_MAINNET]: "ETHEREUM MAINNET",
+  [CHAINID.ETH_KOVAN]: "KOVAN TESTNET",
+  [CHAINID.AVAX_MAINNET]: "AVALANCHE MAINNET",
+  [CHAINID.AVAX_FUJI]: "FUJI TESTNET",
+};
+
 export const CHAINID_TO_NATIVE_TOKENS: Record<CHAINID, Assets> = {
   [CHAINID.ETH_MAINNET]: "WETH",
   [CHAINID.ETH_KOVAN]: "WETH",
@@ -42,6 +48,10 @@ export const isEthAuction = (vault: string) =>
 
 export const isAvaxAuction = (vault: string) =>
   isAvaxNetwork(AuctionAddressMap[vault as AuctionOptions].chainId);
+
+export const NATIVE_TOKENS = ["WETH", "WAVAX"];
+export const isNativeToken = (token: string): boolean =>
+  NATIVE_TOKENS.includes(token);
 
 export const AuctionList= [
   "WBTC-call",
@@ -169,14 +179,19 @@ export const getTokenAddress = (token: Assets, chainId: number) => {
     : (addresses[network].assets as any)[token];
 };
 
-// export const SUBGRAPHS_TO_QUERY: [VaultVersion, CHAINID][] = isDevelopment()
-//   ? [
-//       ["v1", CHAINID.ETH_KOVAN],
-//       ["v2", CHAINID.ETH_KOVAN],
-//       ["v2", CHAINID.AVAX_FUJI],
-//     ]
-//   : [
-//       ["v1", CHAINID.ETH_MAINNET],
-//       ["v2", CHAINID.ETH_MAINNET],
-//       ["v2", CHAINID.AVAX_MAINNET],
-//     ];
+export const SUBGRAPHS: CHAINID[] = isDevelopment()
+  ? [
+      CHAINID.ETH_KOVAN,
+      CHAINID.AVAX_FUJI,
+    ]
+  : [
+      CHAINID.ETH_MAINNET,
+      CHAINID.AVAX_MAINNET,
+    ];
+
+export const getERC20TokenAddress = (token: Assets, chainId: number) => {
+  const network = NETWORKS[chainId];
+  return isDevelopment()
+    ? (addresses[network].assets as any)[token]
+    : (addresses[network].assets as any)[token];
+};
