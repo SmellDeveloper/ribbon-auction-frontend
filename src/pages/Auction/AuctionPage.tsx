@@ -1,5 +1,5 @@
 import { useWeb3React } from "@web3-react/core";
-import { useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useHistory } from "react-router";
 import {
   ArrowIcon
@@ -17,12 +17,19 @@ import { Assets } from "../../store/types";
 import { formatUnits } from "ethers/lib/utils";
 import { BigNumber } from "ethers";
 import { useAuctionsData, useBidsData } from "../../hooks/subgraphDataContext";
-import { NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
+import { getGnosisAuction, GNOSIS_AUCTION, NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
 import { CHAINID } from "../../utils/env";
 import { switchChains } from "../../utils/chainSwitching";
 import { AnimatePresence } from "framer-motion";
 import { useUserBalance } from "../../hooks/web3DataContext";
 import { impersonateAddress } from "../../utils/development";
+import useVaultActionForm from "../../hooks/useVaultActionForm";
+import useTokenAllowance from "../../hooks/useTokenAllowance";
+import { usePendingTransactions } from "../../hooks/pendingTransactionsContext";
+import { getERC20Token } from "../../hooks/useERC20Token";
+import { useWeb3Context } from "../../hooks/web3Context";
+import { wait } from "@testing-library/react";
+import { parentPort } from "worker_threads";
 
 const StatusText = styled.span`
   font-size: 20px;
@@ -237,9 +244,9 @@ const SecondInputCaption = styled.div`
   font-weight: 600;
 `
 
-const Input = styled.input`
+const Input = styled.input<{color: string}>`
   font-family: VCR;
-  background-color: #FFFFFF;
+  background-color: ${(props) => props.color};
   border-radius: 5px;
   border: solid 1px #C1C1C1;
   width: 100%;
@@ -250,6 +257,13 @@ const Input = styled.input`
   &::placeholder {
     opacity: 0.2; 
   }
+`
+
+const InputDiv = styled.div`
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 `
 
 const BidHistoryTitleColumn = styled.div`
@@ -318,13 +332,35 @@ const Blob = styled.div`
   }
 `
 
+const MaxButton = styled.button`
+  font-family: VCR;
+  font-size: 14px;
+  position: absolute;
+  background-color: unset;
+  border: unset;
+  right: 0;
+  height: 50px;
+  color: #8D8D8D;
+  padding: 0px 15px;
+`
+
 const AuctionPage = () => {
 //   usePullUp();
-  const { active, chainId: currentChainId, library } = useWeb3React();
+  
+  const { active, chainId: currentChainId, account, library } = useWeb3React();
   const history = useHistory();
   const { auction, auctionTitle } = useAuctionOption();
   const [auctionId, underlying, strike, type] = auctionTitle!.split("-")
+  const {
+    handlePayableChange,
+    handlePriceChange,
+    handleSizeChange,
+    handleDepositAssetChange,
+    handleMaxClick,
+    auctionActionForm
+  } = useVaultActionForm(auctionId);
 
+  
   const color = getAssetColor(underlying as Assets)
   const Logo = getAssetLogo(underlying as Assets)
 
@@ -334,10 +370,86 @@ const AuctionPage = () => {
   const data = auctions[0]
 
   const loading = auctionsLoading && bidsLoading
-  
   const logoSize = underlying == "WETH"
       ? "70px"
       : "85px"
+
+  const { addPendingTransaction } = usePendingTransactions();
+  const { provider } = useWeb3Context();
+
+  const tokenContract = useMemo(() => {
+    try {
+      return getERC20Token(library, underlying.toLowerCase() as Assets, currentChainId!)
+    } catch {
+      return undefined
+    }
+  }, [currentChainId, data, library]);
+
+  const [waitingApproval, setWaitingApproval] = useState(false);
+  const approveLoadingText = useTextAnimation(waitingApproval, {
+    texts: ["APPROVING", "APPROVING .", "APPROVING ..", "APPROVING ..."],
+    interval: 250,
+  });
+
+  const handleApproveToken = useCallback(async () => {
+    setWaitingApproval(true);
+    console.log(tokenContract)
+    if (tokenContract) {
+      const amount =
+        "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+      try {
+        const tx = await tokenContract.approve(
+          getGnosisAuction(currentChainId!)!,
+          amount
+        );
+
+        const txhash = tx.hash;
+
+        addPendingTransaction({
+          txhash,
+          type: "approval",
+          amount: amount
+        });
+
+        // Wait for transaction to be approved
+        await provider.waitForTransaction(txhash, 5);
+      } catch (err) {
+      } finally {
+        setWaitingApproval(false);
+      }
+    }
+  }, [addPendingTransaction, provider, tokenContract]);
+
+  const handlePlaceOrder = useCallback(async () => {
+
+    // if (tokenContract) {
+    //   const amount =
+    //     "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+
+    //   try {
+    //     const tx = await tokenContract.approve(
+    //       getGnosisAuction(currentChainId!)!,
+    //       amount
+    //     );
+
+    //     const txhash = tx.hash;
+
+    //     addPendingTransaction({
+    //       txhash,
+    //       type: "approval",
+    //       amount: amount
+    //     });
+
+    //     // Wait for transaction to be approved
+    //     await provider.waitForTransaction(txhash, 5);
+    //   } catch (err) {
+    //   } finally {
+    //     setWaitingApproval(false);
+    //   }
+    // }
+  }, [addPendingTransaction, provider, tokenContract]);
+  
 
   const loadingText = useTextAnimation()
 
@@ -350,19 +462,48 @@ const AuctionPage = () => {
     [library, currentChainId]
   );
 
-  const renderBiddingModule = () => {
+  const allowance = useTokenAllowance(data?.bidding.symbol as Assets, getGnosisAuction(currentChainId))
+
+  const renderBiddingModule = (text: JSX.Element, allowed: Boolean, handler: () => void) => {
+    const color = allowed ? "#FFFFFF" : "#D6D6D6"
     return (
       <BiddingModal>
         <InputBlock>
           <InputCaption>OTOKEN QUANTITY</InputCaption>
-          <Input type="number" placeholder="0.0" ></Input>
+          <InputDiv>
+            <Input color={color} disabled={!allowed}
+              type="number"
+              className="form-control"
+              aria-label="quantity"
+              placeholder="0"
+              value={auctionActionForm.quantity}
+              onChange={handleSizeChange}
+            ></Input>
+            <MaxButton onClick={handleMaxClick} disabled={!allowed}>
+              MAX
+            </MaxButton>
+          </InputDiv>
           <SecondInputCaption>PRICE PER OTOKEN (IN {data.bidding.symbol})</SecondInputCaption>
-          <Input type="number" placeholder="0.0"></Input>
+          <Input color={color} disabled={!allowed}
+            type="number"
+            className="form-control"
+            aria-label="price"
+            placeholder="0"
+            value={auctionActionForm.price}
+            onChange={handlePriceChange}
+          ></Input>
         </InputBlock>
         <TradeSymbol><ArrowIcon color="#D3D3D3"></ArrowIcon></TradeSymbol>
         <SecondInputBlock>
           <InputCaption>TOTAL PAYABLE</InputCaption>
-          <Input type="number" placeholder="0.0"></Input>
+          <Input color={color} disabled={!allowed}
+            type="number"
+            className="form-control"
+            aria-label="payable"
+            placeholder="0"
+            value={auctionActionForm.payable}
+            onChange={handlePayableChange}
+          ></Input>
           <BalanceText>
             {"Wallet Balance: " 
             + parseFloat(formatUnits(balances[data.bidding.symbol as Assets], data.bidding.decimals.toString())).toFixed(4)
@@ -370,7 +511,7 @@ const AuctionPage = () => {
           </BalanceText>
         </SecondInputBlock>
         <BidButtonContainer>
-          <BidButton>PLACE BID</BidButton>
+          <BidButton onClick={handleApproveToken}>{text}</BidButton>
         </BidButtonContainer>
       </BiddingModal>
     )
@@ -394,7 +535,7 @@ const AuctionPage = () => {
         <BidHistoryLogItem ratio="4">
           <BidHistoryLogCaption>{price} {symbol}</BidHistoryLogCaption>
         </BidHistoryLogItem>
-        <BidHistoryLogItem ratio="3">
+        <BidHistoryLogItem ratio="4">
           <BidHistoryLogCaption>{total} {symbol}</BidHistoryLogCaption>
         </BidHistoryLogItem>
       </BidHistoryLogs>
@@ -405,7 +546,16 @@ const AuctionPage = () => {
     return (
       (
         <>
-        {renderBiddingModule()}
+        {renderBiddingModule(
+          <>{Number(allowance) > 0 
+            ? "PLACE BID"
+            : waitingApproval
+              ? approveLoadingText
+              : "APPROVE"}</>
+          , Number(allowance) > 0 ,
+          Number(allowance) > 0 
+            ? handleApproveToken
+            : handleApproveToken)}
   <BidInformation>
       <BidInformationCaption>MY BIDS</BidInformationCaption>
         <BidHistoryBlock>
@@ -419,7 +569,7 @@ const AuctionPage = () => {
             <BidHistoryTitle ratio="4">
               <BidHistoryCaption>PRICE PER OTOKEN</BidHistoryCaption>
             </BidHistoryTitle>
-            <BidHistoryTitle ratio="3">
+            <BidHistoryTitle ratio="4">
               <BidHistoryCaption>TOTAL PAYABLE</BidHistoryCaption>
             </BidHistoryTitle>
           </BidHistoryTitleColumn>

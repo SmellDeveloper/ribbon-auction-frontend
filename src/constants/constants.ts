@@ -195,3 +195,16 @@ export const getERC20TokenAddress = (token: Assets, chainId: number) => {
     ? (addresses[network].assets as any)[token]
     : (addresses[network].assets as any)[token];
 };
+
+export const getGnosisAuction = (chainId: number | undefined) => {
+  return chainId
+    ? GNOSIS_AUCTION[chainId as CHAINID]
+    : undefined
+}
+
+export const GNOSIS_AUCTION: Record<number, string> = {
+  [CHAINID.ETH_MAINNET]: "0x0b7fFc1f4AD541A4Ed16b40D8c37f0929158D101",
+  [CHAINID.ETH_KOVAN]: "0x0b7fFc1f4AD541A4Ed16b40D8c37f0929158D101",
+  [CHAINID.AVAX_MAINNET]: "0xb5D00F83680ea5E078e911995c64b43Fbfd1eE61",
+  [CHAINID.AVAX_FUJI]: "0xb5D00F83680ea5E078e911995c64b43Fbfd1eE61"
+};
