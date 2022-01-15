@@ -15,7 +15,7 @@ import { getAssetColor, getAssetLogo } from "../../utils/asset";
 import moment from "moment";
 import { Assets } from "../../store/types";
 import { formatUnits } from "ethers/lib/utils";
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { useAuctionsData, useBidsData } from "../../hooks/subgraphDataContext";
 import { getGnosisAuction, GNOSIS_AUCTION, NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
 import { CHAINID } from "../../utils/env";
@@ -30,6 +30,8 @@ import { getERC20Token } from "../../hooks/useERC20Token";
 import { useWeb3Context } from "../../hooks/web3Context";
 import { wait } from "@testing-library/react";
 import { parentPort } from "worker_threads";
+import useAuction from "../../hooks/useVault";
+import { encodeOrder } from "../../utils/order";
 
 const StatusText = styled.span`
   font-size: 20px;
@@ -152,9 +154,17 @@ const BidButton = styled.button`
   &:hover {
     opacity: ${theme.hover.opacity};
   }
+
+  &:disabled {
+    opacity: ${theme.hover.opacity};
+  }
 `
 
 const StatusTitle = styled.div`
+  margin-left: 10px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
   font-size: 20px;
   font-weight: 500;
 `
@@ -214,6 +224,7 @@ const SecondInputBlock = styled.div`
 `
 
 const InputCaption = styled.div`
+  display: flex;
   font-family: VCR;
   background-color: #FFFFFF;
   border-radius: 5px;
@@ -268,7 +279,7 @@ const InputDiv = styled.div`
 
 const BidHistoryTitleColumn = styled.div`
   display: flex;
-  border-bottom: solid 1px #464646;
+  border-bottom: solid 1px #D6D6D6;
   width: 100%;
   height: 50px;
   margin-bottom: 10px;
@@ -344,6 +355,11 @@ const MaxButton = styled.button`
   padding: 0px 15px;
 `
 
+const Error = styled.span`
+  margin-left: auto;
+  color: red;
+`
+
 const AuctionPage = () => {
 //   usePullUp();
   
@@ -355,7 +371,6 @@ const AuctionPage = () => {
     handlePayableChange,
     handlePriceChange,
     handleSizeChange,
-    handleDepositAssetChange,
     handleMaxClick,
     auctionActionForm
   } = useVaultActionForm(auctionId);
@@ -369,10 +384,7 @@ const AuctionPage = () => {
   const { data: bids, loading: bidsLoading } = useBidsData(auctionId)
   const data = auctions[0]
 
-  const loading = auctionsLoading && bidsLoading
-  const logoSize = underlying == "WETH"
-      ? "70px"
-      : "85px"
+  const loading = auctionsLoading || bidsLoading || balanceLoading
 
   const { addPendingTransaction } = usePendingTransactions();
   const { provider } = useWeb3Context();
@@ -383,7 +395,9 @@ const AuctionPage = () => {
     } catch {
       return undefined
     }
-  }, [currentChainId, data, library]);
+  }, [currentChainId, library]);
+
+  const gnosisContract = useAuction()
 
   const [waitingApproval, setWaitingApproval] = useState(false);
   const approveLoadingText = useTextAnimation(waitingApproval, {
@@ -404,16 +418,16 @@ const AuctionPage = () => {
           amount
         );
 
-        const txhash = tx.hash;
+        // const txhash = tx.hash;
 
-        addPendingTransaction({
-          txhash,
-          type: "approval",
-          amount: amount
-        });
+        // addPendingTransaction({
+        //   txhash,
+        //   type: "approval",
+        //   amount: amount
+        // });
 
-        // Wait for transaction to be approved
-        await provider.waitForTransaction(txhash, 5);
+        // // Wait for transaction to be approved
+        // await provider.waitForTransaction(txhash, 5);
       } catch (err) {
       } finally {
         setWaitingApproval(false);
@@ -421,34 +435,115 @@ const AuctionPage = () => {
     }
   }, [addPendingTransaction, provider, tokenContract]);
 
+  const completeError = useMemo(() => {
+    if (!loading) {
+      if (Number(auctionActionForm.price) == 0 || Number(auctionActionForm.payable) == 0 || Number(auctionActionForm.quantity) == 0) {
+        return {
+          error: true,
+          msg: ""
+        }
+      } else {
+        return {
+          error: false,
+          msg: ""
+        }
+      }
+    } else {
+      return {
+        error: false,
+        msg: ""
+      }
+    }
+  }, [auctionActionForm, balances, data, loading])
+
+  const quantityError = useMemo(() => {
+    if (!loading) {
+      if (Number(auctionActionForm.quantity)*10**8 > Number(data.size.toString())) {
+        return {
+          error: true,
+          msg: "EXCEEDS AMOUNT AVAILABLE"
+        }
+      } else {
+        return {
+          error: false,
+          msg: ""
+        }
+      }
+    } else {
+      return {
+        error: false,
+        msg: ""
+      }
+    }
+  }, [auctionActionForm, balances, data, loading])
+
+  const payableError = useMemo(() => {
+    if (!loading && balances) {
+      if (Number(auctionActionForm.payable) > Number(balances[data.bidding.symbol as Assets].toString())) {
+        return {
+          error: true,
+          msg: "INSUFFICIENT BALANCE"
+        }
+      } else {
+        return {
+          error: false,
+          msg: ""
+        }
+      }
+    } else {
+      return {
+        error: false,
+        msg: ""
+      }
+    }
+  }, [auctionActionForm, balances, data, loading])
+
+  const error = useMemo(() => {
+    return payableError.error || completeError.error || quantityError.error
+  }, [payableError, completeError, quantityError])
+
+  // console.log(error)
   const handlePlaceOrder = useCallback(async () => {
+    if (gnosisContract && !loading) {
+  
+      const bidBytes = bids.map((value) => {
+        return value.bytes
+      })
 
-    // if (tokenContract) {
-    //   const amount =
-    //     "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+      try {
+        const tx = await gnosisContract.placeSellOrders(
+          auctionActionForm.auctionId,
+          [ethers.utils.parseUnits(auctionActionForm.quantity, 8)],
+          [ethers.utils.parseUnits(auctionActionForm.payable, data.bidding.decimals.toString())],
+          !bidBytes ? bidBytes : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
+          "0x"
+        )
+      } catch {}
 
-    //   try {
-    //     const tx = await tokenContract.approve(
-    //       getGnosisAuction(currentChainId!)!,
-    //       amount
-    //     );
+      // const txhash = tx.hash;
+      // console.log(txhash)
+    }
+  }, [loading, error, gnosisContract, auctionActionForm, data, bids]);
 
-    //     const txhash = tx.hash;
+  const handleClaimOrder = useCallback(async () => {
+    if (gnosisContract && !loading) {
+      console.log(bids)
+      const bidBytes = bids.map((value) => {
+        return value.bytes
+      })
+      console.log(bidBytes)
+      console.log(account)
+      try {
+        const tx = await gnosisContract.claimFromParticipantOrder(
+          auctionActionForm.auctionId,
+          bidBytes,
+        )
+      } catch {}
 
-    //     addPendingTransaction({
-    //       txhash,
-    //       type: "approval",
-    //       amount: amount
-    //     });
-
-    //     // Wait for transaction to be approved
-    //     await provider.waitForTransaction(txhash, 5);
-    //   } catch (err) {
-    //   } finally {
-    //     setWaitingApproval(false);
-    //   }
-    // }
-  }, [addPendingTransaction, provider, tokenContract]);
+      // const txhash = tx.hash;
+      // console.log(txhash)
+    }
+  }, [loading, error, gnosisContract, auctionActionForm, data, bids]);
   
 
   const loadingText = useTextAnimation()
@@ -462,14 +557,21 @@ const AuctionPage = () => {
     [library, currentChainId]
   );
 
-  const allowance = useTokenAllowance(data?.bidding.symbol as Assets, getGnosisAuction(currentChainId))
+  const allowance = useTokenAllowance(data?.bidding.symbol as Assets, getGnosisAuction(currentChainId!))
 
-  const renderBiddingModule = (text: JSX.Element, allowed: Boolean, handler: () => void) => {
+  const renderBiddingModule = useCallback(() => {
+    const allowed = true // Number(allowance) > 0
     const color = allowed ? "#FFFFFF" : "#D6D6D6"
+    const walletBalance = 
+    balances[data.bidding.symbol as Assets]
+      ? parseFloat(formatUnits(balances[data.bidding.symbol as Assets], data.bidding.decimals.toString())).toFixed(4)
+        + " " + data.bidding.symbol
+      : "LOADING..."
+
     return (
       <BiddingModal>
         <InputBlock>
-          <InputCaption>OTOKEN QUANTITY</InputCaption>
+          <InputCaption>OTOKEN QUANTITY<Error>{quantityError.error ? quantityError.msg : ""}</Error></InputCaption>
           <InputDiv>
             <Input color={color} disabled={!allowed}
               type="number"
@@ -495,7 +597,7 @@ const AuctionPage = () => {
         </InputBlock>
         <TradeSymbol><ArrowIcon color="#D3D3D3"></ArrowIcon></TradeSymbol>
         <SecondInputBlock>
-          <InputCaption>TOTAL PAYABLE</InputCaption>
+          <InputCaption>TOTAL PAYABLE <Error>{payableError.error ? payableError.msg : ""}</Error></InputCaption>
           <Input color={color} disabled={!allowed}
             type="number"
             className="form-control"
@@ -505,17 +607,23 @@ const AuctionPage = () => {
             onChange={handlePayableChange}
           ></Input>
           <BalanceText>
-            {"Wallet Balance: " 
-            + parseFloat(formatUnits(balances[data.bidding.symbol as Assets], data.bidding.decimals.toString())).toFixed(4)
-            + " " + data.bidding.symbol} 
+            {"Wallet Balance: " + walletBalance} 
           </BalanceText>
         </SecondInputBlock>
         <BidButtonContainer>
-          <BidButton onClick={handleApproveToken}>{text}</BidButton>
+          <BidButton onClick={allowed 
+            ? handlePlaceOrder
+            : handleApproveToken}  >{ //disabled={error}
+              allowed
+                ? "PLACE BID"
+                : waitingApproval
+                  ? approveLoadingText
+                  : "APPROVE"}
+          </BidButton>
         </BidButtonContainer>
       </BiddingModal>
     )
-  }
+  }, [data, payableError, completeError, quantityError, auctionActionForm, balances, allowance, waitingApproval, approveLoadingText])
 
   const renderBid = (
     index: number, 
@@ -542,20 +650,43 @@ const AuctionPage = () => {
     )
   }
 
+  const renderClaimModule = useCallback(() => {
+    const disable = bids.length > 0
+
+   return disable ? (
+   <BiddingModal>
+    <InputBlock>
+      <InputCaption>OTOKEN WON</InputCaption>
+      <Input color={color} disabled={true}
+            type="number"
+            className="form-control"
+            aria-label="payable"
+            placeholder="0"
+            value={auctionActionForm.payable}
+            onChange={handlePayableChange}
+          ></Input>
+      <SecondInputCaption>{data.bidding.symbol} CLAIMABLE</SecondInputCaption>
+      <Input color={color} disabled={true}
+            type="number"
+            className="form-control"
+            aria-label="payable"
+            placeholder="0"
+            value={auctionActionForm.payable}
+            onChange={handlePayableChange}
+          ></Input>
+    </InputBlock>
+    <BidButtonContainer>
+      <BidButton onClick={handleClaimOrder}>CLAIM</BidButton>
+    </BidButtonContainer>
+  </BiddingModal>) 
+  : <EmptyDescriptionContainer>You have nothing to claim.</EmptyDescriptionContainer>
+  },[data, bids])
+
   const renderWalletModule = useCallback(() => {
     return (
       (
         <>
-        {renderBiddingModule(
-          <>{Number(allowance) > 0 
-            ? "PLACE BID"
-            : waitingApproval
-              ? approveLoadingText
-              : "APPROVE"}</>
-          , Number(allowance) > 0 ,
-          Number(allowance) > 0 
-            ? handleApproveToken
-            : handleApproveToken)}
+        {renderBiddingModule()}
   <BidInformation>
       <BidInformationCaption>MY BIDS</BidInformationCaption>
         <BidHistoryBlock>
@@ -599,6 +730,7 @@ const AuctionPage = () => {
   
   if (!loading) {
     if (!data) {
+      console.log("hi")
       return <Redirect to="/" />;
     } else {
       const type = data.option.put ? "P" : "C"
@@ -612,13 +744,15 @@ const AuctionPage = () => {
         <AnimatePresence>
           <StatusTitleContainer>
             {/* <StatusTitle><StatusText>STATUS:</StatusText> STARTING IN 8 MINUTES</StatusTitle> */}
-            <StatusTitle><StatusText>{"STATUS:"}</StatusText> 
+            <StatusText>{"STATUS:"}</StatusText> 
+            <StatusTitle>
               {" "}
               {data.live
-                ? (
+                ? (<>LIVE
                   <IndicatorContainer>
                     <Blob></Blob>
                   </IndicatorContainer>
+                  </>
                 )
                 : "CONCLUDED"
               }
@@ -633,7 +767,7 @@ const AuctionPage = () => {
               
                 {active
                   ? currentChainId == data.chainId
-                    ? renderWalletModule()
+                    ? data.live ? renderClaimModule() : renderWalletModule()
                     : (<WrongNetworkDescriptionContainer>
                       <WrongNetworkButtonContainer>
                         <WrongNetworkText>

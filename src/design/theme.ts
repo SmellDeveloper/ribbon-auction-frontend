@@ -12,7 +12,7 @@ const theme = {
     style: "solid",
   },
   header: {
-    height: 150,
+    height: 130,
   },
   footer: {
     desktop: {

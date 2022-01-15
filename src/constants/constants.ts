@@ -196,11 +196,8 @@ export const getERC20TokenAddress = (token: Assets, chainId: number) => {
     : (addresses[network].assets as any)[token];
 };
 
-export const getGnosisAuction = (chainId: number | undefined) => {
-  return chainId
-    ? GNOSIS_AUCTION[chainId as CHAINID]
-    : undefined
-}
+export const getGnosisAuction = (chainId: number) =>
+  GNOSIS_AUCTION[chainId as CHAINID]
 
 export const GNOSIS_AUCTION: Record<number, string> = {
   [CHAINID.ETH_MAINNET]: "0x0b7fFc1f4AD541A4Ed16b40D8c37f0929158D101",

@@ -157,23 +157,29 @@ const AuctionInformation: React.FC<{
     const filled = parseFloat(
         ethers.utils.formatUnits(BigNumber.from(data.filled).mul(10**8).div(data.size), 6)
     ).toFixed(0)
-    const clearingOrder = decodeOrder(data.clearing)
-
-    const clearingPrice = parseFloat(ethers.utils.formatUnits(
-        clearingOrder.sellAmount
-        .mul(10**8)
-        .div(clearingOrder.buyAmount)
-        , data.bidding.decimals.toString())
-    )
 
     const strike = parseFloat(ethers.utils.formatUnits(
-        data.option.strike,
-        8
+      data.option.strike,
+      8
     )).toFixed(2)
+  
+    
+    let clearing = "-"
+    try {
+      const clearingOrder = decodeOrder(data.clearing)
 
-    const clearing = data.bidding.symbol == "USDC"
-        ? clearingPrice.toFixed(2)
-        : clearingPrice.toFixed(4)
+      const clearingPrice = parseFloat(ethers.utils.formatUnits(
+          clearingOrder.sellAmount
+          .mul(10**8)
+          .div(clearingOrder.buyAmount)
+          , data.bidding.decimals.toString())
+      )
+    
+      clearing = data.bidding.symbol == "USDC"
+          ? clearingPrice.toFixed(2)
+          : clearingPrice.toFixed(4)
+    } catch {
+    }
 
     const minBidPrice = parseFloat(
         ethers.utils.formatUnits(
@@ -222,7 +228,7 @@ const AuctionInformation: React.FC<{
       <AuctionInformationContainer>
         <MainInformation>
           <LogoContainer color={color}>
-            <Logo height={logoSize} width={logoSize}></Logo>
+            <Logo height={logoSize} width={logoSize} backgroundColor="none"></Logo>
           </LogoContainer>
           <Description>
             <Title>
@@ -275,11 +281,11 @@ const AuctionInformation: React.FC<{
           </DetailComponent>
           <DetailComponent 
             caption="Strike Price:" 
-            value={numberWithCommas(strike)}>  
+            value={"$"+numberWithCommas(strike)}>  
           </DetailComponent>
           <DetailComponent 
             caption="Current Spot Price:" 
-            value={numberWithCommas(price)}>
+            value={"$"+numberWithCommas(price)}>
           </DetailComponent>
           <DetailComponent 
             caption="Underlying Token:" 

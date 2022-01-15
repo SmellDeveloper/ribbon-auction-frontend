@@ -7,7 +7,6 @@ import Header from "./Header/Header";
 import { Container } from "react-bootstrap";
 import Homepage from "../pages/Home/Homepage";
 import AuctionPage from "../pages/Auction/AuctionPage";
-import ConcludedPage from "../pages/Auction/ConcludedPage";
 // import DepositPage from "../pages/DepositPage/DepositPage";
 // import useEagerConnect from "../hooks/useEagerConnect";
 // import PortfolioPage from "../pages/Portfolio/PortfolioPage";

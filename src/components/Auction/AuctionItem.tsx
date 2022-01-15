@@ -112,18 +112,24 @@ const AuctionItem: React.FC<{
   const filled = parseFloat(
     ethers.utils.formatUnits(BigNumber.from(data.filled).mul(10**8).div(data.size), 6)
   ).toFixed(0)
-  const clearingOrder = decodeOrder(data.clearing)
 
-  const clearingPrice = parseFloat(ethers.utils.formatUnits(
-    clearingOrder.sellAmount
-      .mul(10**8)
-      .div(clearingOrder.buyAmount)
-    , data.bidding.decimals.toString())
-  )
+  let clearing = "-"
+  try {
+    const clearingOrder = decodeOrder(data.clearing)
 
-  const clearing = data.bidding.symbol == "USDC"
-    ? clearingPrice.toFixed(2)
-    : clearingPrice.toFixed(4)
+    const clearingPrice = parseFloat(ethers.utils.formatUnits(
+      clearingOrder.sellAmount
+        .mul(10**8)
+        .div(clearingOrder.buyAmount)
+      , data.bidding.decimals.toString())
+    )
+
+    clearing = data.bidding.symbol == "USDC"
+      ? clearingPrice.toFixed(2)
+      : clearingPrice.toFixed(4)
+  } catch {
+    clearing = "-"
+  }
 
   const minBidPrice = parseFloat(
     ethers.utils.formatUnits(

@@ -286,14 +286,14 @@ const useVaultActionForm = (auctionId: string) => {
       console.log(prevAction)
       console.log(auctionActionForm.lastAction)
       let payable = auctionActionForm.payable
-      if (auctionActionForm.quantity != "0" && prevAction == "quantity") {
+      if (Number(auctionActionForm.quantity) > 0 && prevAction == "quantity") {
         const price = ethers.utils.parseUnits(rawInput ? rawInput : "0", decimal)
         const quantity = ethers.utils.parseUnits(auctionActionForm.quantity, 8)
         payable = ethers.utils.formatUnits(price.mul(quantity).div(10**8), decimal)
       }
 
       let quantity = auctionActionForm.quantity
-      if (auctionActionForm.payable != "0" && prevAction == "payable") {
+      if (Number(auctionActionForm.payable) > 0 && prevAction == "payable") {
         const price = ethers.utils.parseUnits(rawInput ? rawInput : "0", decimal)
         const payable = ethers.utils.parseUnits(auctionActionForm.payable, decimal)
         try {
@@ -321,19 +321,19 @@ const useVaultActionForm = (auctionId: string) => {
       const decimal = auctionData.bidding.decimals.toString()
 
       let prevAction = auctionActionForm.prevAction
-      if (auctionActionForm.lastAction != "quantity"|| !auctionActionForm.prevAction) {
+      if (auctionActionForm.lastAction == "quantity" || !auctionActionForm.prevAction) {
         prevAction = auctionActionForm.lastAction
       }
 
       let payable = auctionActionForm.payable
-      if (auctionActionForm.price != "0" && prevAction == "price") {
+      if (Number(auctionActionForm.price) > 0 && prevAction == "price") {
         const quantity = ethers.utils.parseUnits(rawInput ? rawInput : "0", 8)
         const price = ethers.utils.parseUnits(auctionActionForm.price, decimal)
         payable = ethers.utils.formatUnits(price.mul(quantity).div(10**8), decimal)
       }
 
       let price = auctionActionForm.price
-      if (auctionActionForm.payable != "0" && prevAction == "payable") {
+      if (Number(auctionActionForm.payable) > 0 && prevAction == "payable") {
         const quantity = ethers.utils.parseUnits(rawInput ? rawInput : "0", 8)
         const payable = ethers.utils.parseUnits(auctionActionForm.payable, decimal)
         try {
@@ -366,7 +366,7 @@ const useVaultActionForm = (auctionId: string) => {
       }
 
       let quantity = auctionActionForm.quantity
-      if (auctionActionForm.payable != "0" && prevAction == "price") {
+      if (Number(auctionActionForm.payable) > 0 && prevAction == "price") {
         const price = ethers.utils.parseUnits(auctionActionForm.price, decimal)
         const payable = ethers.utils.parseUnits(rawInput ? rawInput : "0", decimal)
         try {
@@ -377,7 +377,7 @@ const useVaultActionForm = (auctionId: string) => {
       }
 
       let price = auctionActionForm.price
-      if (auctionActionForm.payable != "0" && prevAction == "quantity") {
+      if (Number(auctionActionForm.payable) > 0 && prevAction == "quantity") {
         const quantity = ethers.utils.parseUnits(auctionActionForm.quantity, 8)
         const payable = ethers.utils.parseUnits(rawInput ? rawInput : "0", decimal)
         try {
@@ -528,14 +528,14 @@ const useVaultActionForm = (auctionId: string) => {
       }
       
       let payable = auctionActionForm.payable
-      if (auctionActionForm.price != "0" && prevAction == "price") {
+      if (Number(auctionActionForm.price) > 0 && prevAction == "price") {
         const quantity = auctionData.size
         const price = ethers.utils.parseUnits(auctionActionForm.price, decimal)
         payable = ethers.utils.formatUnits(price.mul(quantity).div(10**8), decimal)
       }
 
       let price = auctionActionForm.price
-      if (auctionActionForm.payable != "0" && prevAction == "payable") {
+      if (Number(auctionActionForm.payable) > 0 && prevAction == "payable") {
         const quantity = auctionData.size
         const payable = ethers.utils.parseUnits(auctionActionForm.payable, decimal)
         try {

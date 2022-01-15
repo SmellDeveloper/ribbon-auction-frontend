@@ -76,30 +76,14 @@ const DetailDescription = styled.div`
 
 const InformationGroup = styled.div`
   display: block;
-  min-width: 100px;
+  min-width: 150px;
   margin-bottom: 5px;
 `
 
 const ButtonContainer = styled.div`
   display: flex;
-  margin-left: 160px;
+  margin-left: 80px;
   align-items: center;
-`
-
-const BidButton = styled.button`
-  font-family: VCR;
-  font-size: 20px; 
-  color: #FFFFFF;
-  background-color: #424242;
-  border-radius: 5px;
-  border: none;
-  padding: 9px 20px 10px 20px;
-  line-height: 20px;
-  vertical-align: text-top;
-  height: 41px;
-  &:hover {
-    opacity: ${theme.hover.opacity};
-  }
 `
 
 const Separator = styled.div`
@@ -168,26 +152,31 @@ const LiveAuctionItem: React.FC<{
     const filled = parseFloat(
       ethers.utils.formatUnits(BigNumber.from(data.filled).mul(10**8).div(data.size), 6)
     ).toFixed(0)
-    const clearingOrder = decodeOrder(data.clearing)
+
+    let clearing = "-"
+    try {
+      const clearingOrder = decodeOrder(data.clearing)
+    
+      const clearingPrice = parseFloat(ethers.utils.formatUnits(
+        clearingOrder.sellAmount
+          .mul(10**8)
+          .div(clearingOrder.buyAmount)
+        , data.bidding.decimals.toString())
+      )
   
-    const clearingPrice = parseFloat(ethers.utils.formatUnits(
-      clearingOrder.sellAmount
-        .mul(10**8)
-        .div(clearingOrder.buyAmount)
-      , data.bidding.decimals.toString())
-    )
+      clearing = data.bidding.symbol == "USDC"
+        ? clearingPrice.toFixed(2)
+        : clearingPrice.toFixed(4)
+    } catch {
+    }
 
     const minBidPrice = parseFloat(
-        ethers.utils.formatUnits(
-            BigNumber.from(data.minimum)
-                .mul(10**8)
-                .div(data.size)
-        , data.bidding.decimals.toString())
+      ethers.utils.formatUnits(
+          BigNumber.from(data.minimum)
+              .mul(10**8)
+              .div(data.size)
+      , data.bidding.decimals.toString())
     )
-  
-    const clearing = data.bidding.symbol == "USDC"
-      ? clearingPrice.toFixed(2)
-      : clearingPrice.toFixed(4)
 
     const minBid = data.bidding.symbol == "USDC"
     ? minBidPrice.toFixed(2)
@@ -218,7 +207,7 @@ const LiveAuctionItem: React.FC<{
         </TitleContainer>
         <LiveAuctionItemContainer>
             <LogoContainer color={color}>
-                <Logo height={logoSize} width={logoSize}></Logo>
+                <Logo height={logoSize} width={logoSize} backgroundColor="none"></Logo>
             </LogoContainer>
             <MainDescription>
                 <AuctionTitle>

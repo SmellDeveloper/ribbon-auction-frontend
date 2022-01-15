@@ -49,7 +49,8 @@ export type BidData = {
   payable: string,
   live: string,
   claimed: string,
-  hash: string
+  hash: string,
+  bytes: string,
 }
 
 export interface AugmentedAuctionData extends AuctionData {

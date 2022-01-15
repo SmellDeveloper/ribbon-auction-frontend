@@ -48,17 +48,20 @@ const Homepage = () => {
     return Number(a.end) - Number(b.end)
   })
   
-  // const liveAuction = responses.filter((value) => {
-  //   return value.live
-  // })
+  const liveAuction = responses.auctions.filter((value) => {
+    return value.live
+  })[0]
 
-  const liveAuction = responses.auctions[0]
+  const recentAuctions = responses.auctions.filter((value) => {
+    return !value.live
+  })
+
+  // const liveAuction = responses.auctions[0]
 
   const loadingText = useTextAnimation()
-
   return (
     <>
-      {!loading
+      {!loading && liveAuction
         ? <LiveAuctionItem data={liveAuction}></LiveAuctionItem>
         : <></>
       }
@@ -66,7 +69,7 @@ const Homepage = () => {
       <ListTitle>Upcoming Auctions</ListTitle>
       <ListContainer>
       {!loading
-          ? responses.auctions.slice(0,5).reverse().map((data) => {
+          ? recentAuctions.slice(0,5).reverse().map((data) => {
 
             return (
               <AuctionItem 
@@ -82,7 +85,7 @@ const Homepage = () => {
       <ListTitle>Recent Auctions</ListTitle>
       <ListContainer>
         {!loading
-          ? responses.auctions.reverse().map((data) => {
+          ? recentAuctions.reverse().map((data) => {
 
             return (
               <AuctionItem 

@@ -34,6 +34,7 @@ export const AuctionGraphql = () => {
       filled
       clearing
       spot
+      live
     }`
   )
 }
@@ -49,6 +50,7 @@ export const BidsGraphql = (account: string) => {
       live
       claimed
       hash
+      bytes
     }`
   )
 }
