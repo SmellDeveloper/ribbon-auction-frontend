@@ -4,13 +4,12 @@ import {
   getAssetLogo
 } from "../../utils/asset"
 import styled from "styled-components";
-import theme from "../../design/theme";
 import { useCallback, useMemo } from "react";
 import { AuctionData } from "../../models/auction";
 import { Assets } from "../../store/types";
 import moment from "moment";
 import { decodeOrder } from "../../utils/order";
-import { ActionButton } from "../Common/Button";
+import { LinkButton } from "../Common/Buttons";
 
 const AuctionItemContainer = styled.div`
   display: flex;
@@ -67,12 +66,6 @@ const DetailDescription = styled.div`
   color: #646464;
   align-items: center;
   margin-left: auto;
-
-  // & > * {
-  //   &:nth-last-child(3) {
-  //     width: 130px;
-  //   }
-  // }
 `
 
 const InformationGroup = styled.div`
@@ -225,7 +218,7 @@ const AuctionItem: React.FC<{
           </MainDescription>
           {AuctionDetails}
           <ButtonContainer>
-            <ActionButton link={link} children="VIEW"></ActionButton>
+            <LinkButton link={link} children="VIEW"></LinkButton>
           </ButtonContainer>
         </AuctionItemContainer>
     </>

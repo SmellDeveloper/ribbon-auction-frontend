@@ -135,7 +135,7 @@ export const getAssetLogo: (asset: Assets) =>
     case "USDC":
       return ColoredUSDCLogo;
     case "yvUSDC":
-      return ColoredUSDCLogo;
+      return ColoredYVUSDCLogo;
     case "WBTC":
       return ColoredWBTCLogo;
     case "WETH":

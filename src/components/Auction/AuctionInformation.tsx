@@ -141,7 +141,7 @@ const AuctionInformation: React.FC<{
     const priceFeed = useFetchAssetsPrice()
     const price = priceFeed.data[data.option.underlying.symbol as Assets].latestPrice.toFixed(2)
     const Logo = getAssetLogo(data.bidding.symbol as Assets)
-    const logoSize = data.bidding.symbol == "WETH"
+    const logoSize = data.bidding.symbol == "WETH" || data.bidding.symbol == "WAVAX"
         ? "70px"
         : "90px"
 

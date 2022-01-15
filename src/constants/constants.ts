@@ -1,6 +1,5 @@
 import {
   CHAINID,
-  getSubgraphqlURI,
   isDevelopment,
 } from "../utils/env";
 import deployment from "./deployments.json";
@@ -142,18 +141,6 @@ export const BLOCKCHAIN_EXPLORER_URI: Record<number, string> = {
 
 export const getEtherscanURI = (chainId: number) =>
   BLOCKCHAIN_EXPLORER_URI[chainId as CHAINID];
-
-// export const getSubgraphURIForVersion = (
-//   vaultVersion: VaultVersion,
-//   chainId: number
-// ) => {
-//   switch (vaultVersion) {
-//     case "v1":
-//       return getSubgraphqlURI();
-//     case "v2":
-//       return SUBGRAPH_URI[chainId];
-//   }
-// };
 
 export const getAssets = (vault: AuctionOptions): Assets => {
   switch (vault) {

@@ -4,14 +4,13 @@ import {
   getAssetLogo
 } from "../../utils/asset"
 import styled from "styled-components";
-import theme from "../../design/theme";
 import { AuctionData } from "../../models/auction";
 import { Assets } from "../../store/types";
 import moment from "moment";
 import { decodeOrder } from "../../utils/order";
 import LiveIndicator from "../Indicator/Live";
 import { AnimatePresence, motion } from "framer-motion";
-import { ActionButton } from "../Common/Button";
+import { LinkButton } from "../Common/Buttons";
 
 const LiveAuctionItemContainer = styled.div`
   display: flex;
@@ -245,7 +244,7 @@ const LiveAuctionItem: React.FC<{
             </DetailDescription>
             </StackedDetailDescription>
             <ButtonContainer>
-                <ActionButton link={link} children="BID"></ActionButton>
+                <LinkButton link={link} children="BID"></LinkButton>
             </ButtonContainer>
             </LiveAuctionItemContainer>
         </LiveAuctionOuterContainer>

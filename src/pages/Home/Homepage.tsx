@@ -3,7 +3,7 @@ import { useHistory } from "react-router";
 import AuctionItem from "../../components/Auction/AuctionItem"
 import styled from "styled-components";
 import useFetchSubgraphData from "../../hooks/useFetchSubgraphData";
-import useTextAnimation from "../../components/Common/useTextAnimation";
+import useTextAnimation from "../../hooks/useTextAnimation";
 import LiveAuctionItem from "../../components/Auction/LiveAuctionItem";
 
 const ListContainer = styled.div`

@@ -10,7 +10,7 @@ import {
   CHAINID_TO_NATIVE_TOKENS,
   READABLE_NETWORK_NAMES,
 } from "../../constants/constants";
-import { switchChains } from "../../utils/chainSwitching";
+import { switchChains } from "../../utils/switch";
 import useScreenSize from "../../hooks/useScreenSize";
 import sizes from "../../design/sizes";
 

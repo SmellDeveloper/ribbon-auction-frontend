@@ -27,7 +27,7 @@ import MenuButton from "../../components/Common/MenuButton";
 import { copyTextToClipboard } from "../../utils/text";
 import useOutsideAlerter from "../../hooks/useOutsideAlerter";
 import { WalletConnectConnector } from "@web3-react/walletconnect-connector";
-import { ActionButton } from "../../components/Common/buttons";
+import { ActionButton } from "../Common/Buttons";
 import useConnectWalletModal from "../../hooks/useConnectWalletModal";
 import ButtonArrow from "../../components/Common/ButtonArrow";
 import {

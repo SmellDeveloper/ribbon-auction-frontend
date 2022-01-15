@@ -1,5 +1,5 @@
 import { providers } from "ethers";
-import { AVALANCHE_MAINNET_PARAMS, AVALANCHE_TESTNET_PARAMS } from "../constants/chainParameters";
+import { AVALANCHE_MAINNET_PARAMS, AVALANCHE_TESTNET_PARAMS } from "../constants/chains";
 import { isAvaxNetwork } from "../constants/constants";
 import { CHAINID } from "./env";
 

@@ -1,8 +1,17 @@
 import React, { ReactNode, useCallback, useRef } from "react";
 import styled from "styled-components";
-
 import colors from "../../design/colors";
 import theme from "../../design/theme";
+
+const InternalButtonLink = styled.a`
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    text-decoration: none;
+    color: inherit;
+  }
+`;
 
 export const Button = styled.button`
   font-family: VCR, sans-serif;
@@ -20,6 +29,61 @@ export const Button = styled.button`
     box-shadow: none;
   }
 `;
+
+const StyledButton = styled.button`
+  font-family: VCR;
+  font-size: 20px; 
+  color: #FFFFFF;
+  background-color: #424242;
+  border-radius: 5px;
+  border: none;
+  padding: 9px 20px 10px 20px;
+  line-height: 20px;
+  vertical-align: text-top;
+  &:hover {
+    opacity: ${theme.hover.opacity};
+  }
+`
+
+export const LinkButton: React.FC<{
+    link: string
+    children: string
+  }> = ({
+    link = "",
+    children,
+  }) => {
+    const hasLink = link !== "";
+    const linkRef = useRef<HTMLAnchorElement | null>(null);
+  
+    return (
+      <StyledButton>
+        {hasLink ? (
+          <InternalButtonLink
+            ref={linkRef}
+            href={link}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            {children}
+          </InternalButtonLink>
+        ) : (
+          children
+        )}
+      </StyledButton>
+    );
+  };
+
+  interface ActionButtonProps {
+    className?: string;
+    disabled?: boolean;
+    link?: string;
+    onClick?: () => void;
+    color?: string;
+    error?: boolean;
+    children: ReactNode;
+    variant?: "primary" | "secondary";
+  }
+
 
 export const BaseActionButton = styled(Button)<{
   error?: boolean;
@@ -84,80 +148,50 @@ export const BaseActionButton = styled(Button)<{
     }
   }}
 `;
-
-const InternalButtonLink = styled.a`
-  text-decoration: none;
-  color: inherit;
-
-  &:hover {
-    text-decoration: none;
-    color: inherit;
-  }
-`;
-
-interface ActionButtonProps {
-  className?: string;
-  disabled?: boolean;
-  link?: string;
-  onClick?: () => void;
-  color?: string;
-  error?: boolean;
-  children: ReactNode;
-  variant?: "primary" | "secondary";
-}
-
-export const ActionButton: React.FC<ActionButtonProps> = ({
-  onClick = () => {},
-  link = "",
-  className = "",
-  children,
-  color,
-  error,
-  disabled = false,
-  variant = "primary",
-}) => {
-  const hasLink = link !== "";
-  const linkRef = useRef<HTMLAnchorElement | null>(null);
-
-  const openLink = useCallback(() => {
-    if (linkRef !== null && linkRef.current !== null) {
-      linkRef.current.click();
-    }
-  }, []);
-
-  const handleClick = hasLink ? openLink : onClick;
-
-  return (
-    <BaseActionButton
-      disabled={disabled}
-      onClick={handleClick}
-      type="button"
-      color={color}
-      error={error}
-      className={`btn ${className}`}
-      variant={variant}
-    >
-      {link !== "" ? (
-        <InternalButtonLink
-          ref={linkRef}
-          href={link}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {children}
-        </InternalButtonLink>
-      ) : (
-        children
-      )}
-    </BaseActionButton>
-  );
-};
-
-export const ConnectWalletButton = styled(Button)`
-  background: ${colors.buttons.secondaryBackground};
-  color: ${colors.buttons.secondaryText};
-
-  &:hover {
-    color: ${colors.buttons.secondaryText};
-  }
-`;
+  
+  export const ActionButton: React.FC<ActionButtonProps> = ({
+    onClick = () => {},
+    link = "",
+    className = "",
+    children,
+    color,
+    error,
+    disabled = false,
+    variant = "primary",
+  }) => {
+    const hasLink = link !== "";
+    const linkRef = useRef<HTMLAnchorElement | null>(null);
+  
+    const openLink = useCallback(() => {
+      if (linkRef !== null && linkRef.current !== null) {
+        linkRef.current.click();
+      }
+    }, []);
+  
+    const handleClick = hasLink ? openLink : onClick;
+  
+    return (
+      <BaseActionButton
+        disabled={disabled}
+        onClick={handleClick}
+        type="button"
+        color={color}
+        error={error}
+        className={`btn ${className}`}
+        variant={variant}
+      >
+        {link !== "" ? (
+          <InternalButtonLink
+            ref={linkRef}
+            href={link}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            {children}
+          </InternalButtonLink>
+        ) : (
+          children
+        )}
+      </BaseActionButton>
+    );
+  };

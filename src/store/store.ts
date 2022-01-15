@@ -1,6 +1,5 @@
 import { createGlobalState } from "react-hooks-global-state";
-import { AuctionOptions } from "../constants/constants";
-import { PendingTransaction, AirdropInfoData, Assets } from "./types";
+import { PendingTransaction, Assets } from "./types";
 
 interface GlobalStore {
   pendingTransactions: PendingTransaction[];

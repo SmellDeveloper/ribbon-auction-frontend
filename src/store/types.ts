@@ -45,17 +45,3 @@ export type PendingTransaction = {
       amount: string;
     }
 );
-
-export type AirdropInfoData = {
-  account: string;
-  total: number;
-  proof: {
-    index: number;
-    amount: BigNumber;
-    proof: string[];
-  };
-  breakdown: {
-    [key: string]: number;
-  };
-  claimed: boolean;
-};

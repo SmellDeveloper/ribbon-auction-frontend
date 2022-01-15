@@ -7,16 +7,10 @@ import Header from "./Header/Header";
 import { Container } from "react-bootstrap";
 import Homepage from "../pages/Home/Homepage";
 import AuctionPage from "../pages/Auction/AuctionPage";
-// import DepositPage from "../pages/DepositPage/DepositPage";
-// import useEagerConnect from "../hooks/useEagerConnect";
-// import PortfolioPage from "../pages/Portfolio/PortfolioPage";
-// import Footer from "./Footer/Footer";
 import useScreenSize from "../hooks/useScreenSize";
-// import { TxStatusToast, WithdrawReminderToast } from "./Common/toasts";
 import WalletConnectModal from "../components/Wallet/WalletConnectModal";
 import NotFound from "../pages/NotFound";
 import colors from "../design/colors";
-// import YourPositionModal from "./Vault/Modal/YourPositionModal";
 
 const Root = styled(Container)<{ screenHeight: number}>`
   background-color: ${colors.background.one};
