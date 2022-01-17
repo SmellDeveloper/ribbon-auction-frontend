@@ -1,5 +1,5 @@
 import { useWeb3React } from "@web3-react/core";
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import AuctionInformation from "../../components/Auction/AuctionInformation";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
@@ -15,6 +15,9 @@ import BidModule from "../../components/Bid/BidModule";
 import BidInformationPage from "../../components/Bid/BidInformation";
 import ClaimModule from "../../components/Claim/ClaimModule";
 import { useUserBalance } from "../../hooks/web3DataContext";
+import LiveIndicator from "../../components/Indicator/Live";
+import { useGlobalState } from "../../store/store";
+import { BigNumber } from "ethers";
 
 const StatusText = styled.span`
   font-size: 20px;
@@ -110,38 +113,13 @@ const WalletModule = styled.div`
   justify-content: center;
   z-index: 1000;
 `
-const Blob = styled.div`
-  background: #16CEB9;
-	border-radius: 50%;
-  margin: auto;
-	height: 15px;
-	width: 15px;
-
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 1);
-	transform: scale(0.4);
-	animation: pulse 2s infinite;
-
-  @keyframes pulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 #16CEB970;
-    }
-  
-    70% {
-      transform: scale(1);
-      box-shadow: 0 0 0 10px #16CEB900;
-    }
-  
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 #16CEB900;
-    }
-  }
-`
 
 const AuctionPage = () => {
   
   const { active, chainId: currentChainId, account, library } = useWeb3React();
+  const [globalAuctionId, setGlobalAuctionId] = useGlobalState(
+    "auctionId"
+  );
   const { auction, auctionTitle } = useAuctionOption();
   const [auctionId, underlying, strike, type] = auctionTitle!.split("-")
 
@@ -153,7 +131,7 @@ const AuctionPage = () => {
   const loading = auctionsLoading || bidsLoading || balanceLoading
 
   const loadingText = useTextAnimation()
-
+  
   const handleSwitchChain = useCallback(
     async (chainId: number) => {
       if (library && currentChainId !== chainId) {
@@ -162,10 +140,13 @@ const AuctionPage = () => {
     },
     [library, currentChainId]
   );
+
+  useEffect(() => {
+    setGlobalAuctionId(auctionId)
+  }, [auctionId])
   
   if (!loading) {
     if (!data) {
-      console.log("hi")
       return <Redirect to="/" />;
     } else {
       const type = data.option.put ? "P" : "C"
@@ -184,9 +165,9 @@ const AuctionPage = () => {
               {" "}
               {data.live
                 ? (<>LIVE
-                  <IndicatorContainer>
-                    <Blob></Blob>
-                  </IndicatorContainer>
+                <IndicatorContainer>
+                  <LiveIndicator></LiveIndicator>
+                </IndicatorContainer>
                   </>
                 )
                 : "CONCLUDED"
@@ -195,14 +176,14 @@ const AuctionPage = () => {
             
           </StatusTitleContainer>
     
-          <AuctionInformation data={data}></AuctionInformation>
+          <AuctionInformation data={data} bidData={bids}></AuctionInformation>
           
           <ListContainer>
             <WalletModule>
               
                 {active
                   ? currentChainId == data.chainId
-                    ? !data.live ? <ClaimModule auctionData={data} bidData={bids}></ClaimModule>
+                    ? data.live ? <ClaimModule auctionData={data} bidData={bids}></ClaimModule>
                       : (<>
                           <BidModule auctionData={data}></BidModule>
                           <BidInformationPage auctionData={data} bidData={bids}></BidInformationPage>

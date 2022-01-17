@@ -281,7 +281,6 @@ const AccountStatus: React.FC<AccountStatusProps> = ({
   const [copyState, setCopyState] = useState<"visible" | "hiding" | "hidden">(
     "hidden"
   );
-  console.log(connector)
 
   // Track clicked area outside of desktop menu
   const desktopMenuRef = useRef(null);

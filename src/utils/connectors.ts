@@ -7,11 +7,7 @@ export const injectedConnector = new InjectedConnector({
   supportedChainIds,
 });
 
-/**
- * A bug causes wallet connect connector to stuck forever upon second invoke
- * Possibly workaround as getting new connector after every connect
- * More about issue: https://github.com/NoahZinsmeister/web3-react/pull/130
- */
+
 export const getWalletConnectConnector = () =>
   new WalletConnectConnector({
     supportedChainIds,

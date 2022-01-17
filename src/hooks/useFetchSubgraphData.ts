@@ -44,10 +44,16 @@ import { usePendingTransactions } from "./pendingTransactionsContext";
 import { SUBGRAPHS } from "../constants/constants";
 import { SUBGRAPH_URI } from "../utils/env";
 import { AuctionData, AugmentedAuctionData, AugmentedBidData, BidData } from "../models/auction";
+import { useGlobalState } from "../store/store";
+import useVaultActionForm from "./useVaultActionForm";
+import { impersonateAddress } from "../utils/development";
 
 const useFetchSubgraphData = () => {
-  const { account: web3Account, chainId } = useWeb3React();
-  const account = "0x160d1ab4af9463df0249f5e720c42ecb3f330fc0"
+  const [globalAuctionId, setGlobalAuctionId] = useGlobalState(
+    "auctionId"
+  );
+  const { account: acc, chainId } = useWeb3React();
+  const account = impersonateAddress ? impersonateAddress : acc;
   const [data, setData] =
     useState<SubgraphDataContextType>(defaultSubgraphData);
   const { transactionsCounter } = usePendingTransactions();
@@ -74,12 +80,12 @@ const useFetchSubgraphData = () => {
           {
             query: `{
                 ${
-                  account
+                  globalAuctionId != ""
                     ?`
                       ${AuctionGraphql()}
-                      ${BidsGraphql(account)}
+                      ${BidsGraphql(globalAuctionId)}
                     `
-                    : `${AuctionGraphql()}`
+                   :  `${AuctionGraphql()}`
                 }
             }`
           }
@@ -97,13 +103,16 @@ const useFetchSubgraphData = () => {
       })
     }).flat()
 
-    const bids = allSubgraphResponses.map((data) => {
-      return data.data.bids.map((bid: BidData) => {
-        const augmentedBid: any = bid
-        augmentedBid.chainId = data.chainId
-        return augmentedBid as AugmentedBidData
-      })
-    }).flat()
+    let bids = []
+    if (globalAuctionId != "") {
+      bids = allSubgraphResponses.map((data) => {
+        return data.data.bids.map((bid: BidData) => {
+          const augmentedBid: any = bid
+          augmentedBid.chainId = data.chainId
+          return augmentedBid as AugmentedBidData
+        })
+      }).flat()
+    }
 
     // if (account) {
     //   const bids = allSubgraphResponses.map((data) => {
@@ -119,6 +128,7 @@ const useFetchSubgraphData = () => {
       auctions: auctions,
       bids: bids
     }
+
     // const organizedResponse
     // console.log(responses)
     // // Group all the responses of the same version together

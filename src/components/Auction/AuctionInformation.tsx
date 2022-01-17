@@ -4,7 +4,7 @@ import {
   getAssetLogo
 } from "../../utils/asset"
 import styled from "styled-components";
-import { AuctionData } from "../../models/auction";
+import { AuctionData, AugmentedBidData } from "../../models/auction";
 import { Assets } from "../../store/types";
 import moment from "moment";
 import { decodeOrder } from "../../utils/order";
@@ -135,8 +135,10 @@ const DetailsContainer = styled.div`
 
 const AuctionInformation: React.FC<{
     data: AuctionData
+    bidData: AugmentedBidData[]
 }> = ({
-  data
+  data,
+  bidData
 }) => {
     const priceFeed = useFetchAssetsPrice()
     const price = priceFeed.data[data.option.underlying.symbol as Assets].latestPrice.toFixed(2)
@@ -191,9 +193,18 @@ const AuctionInformation: React.FC<{
 
     const live = data.live
 
-    const minBid = data.bidding.symbol == "USDC"
-      ? minBidPrice.toFixed(2)
-      : minBidPrice.toFixed(4)
+    const fixed = data.bidding.symbol == "USDC"
+      ? 2 : 4
+
+    const minBid = minBidPrice.toFixed(fixed)
+
+    const highestBidPrice = Math.max(...bidData.map((value) => {
+      return parseFloat(BigNumber.from(value.payable).mul(10**8).div(value.size).toString())
+    }))
+
+    const highestBid = bidData.length > 0
+    ? highestBidPrice.toFixed(fixed) + " " + data.bidding.symbol
+    : "-"
 
     const topInformationItem = (
       caption: string, 
@@ -242,7 +253,7 @@ const AuctionInformation: React.FC<{
               {live
                 ? topInformationItem(
                     "Highest Bid (per oToken):", 
-                    "0.0035 " + data.bidding.symbol, color
+                    `${highestBid}`, color
                   )
                 : (<>
                     {topInformationItem(

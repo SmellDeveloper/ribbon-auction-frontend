@@ -131,7 +131,6 @@ const IndicatorContainer = styled.div`
   height: 35px;
 `
 
-
 const LiveAuctionItem: React.FC<{
     data: AuctionData
   }> = ({

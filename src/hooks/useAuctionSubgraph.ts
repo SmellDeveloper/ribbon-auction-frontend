@@ -39,17 +39,39 @@ export const AuctionGraphql = () => {
   )
 }
 
-export const BidsGraphql = (account: string) => {
+// export const AccountBidsGraphql = (account: string) => {
+//   return (
+//     `bids: bids (where: {account: "${account}"}) {
+//       id
+//       index
+//       auction
+//       account {
+//         id
+//       }
+//       size
+//       payable
+//       createtx
+//       claimtx
+//       canceltx
+//       bytes
+//     }`
+//   )
+// }
+
+export const BidsGraphql = (auctionId: string) => {
   return (
-    `bids: bids (where: {account: "${account}"}) {
+    `bids: bids (where: {auction: ${auctionId}}) {
       id
       index
       auction
+      account {
+        id
+      }
       size
       payable
-      live
-      claimed
-      hash
+      createtx
+      claimtx
+      canceltx
       bytes
     }`
   )

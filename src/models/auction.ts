@@ -11,7 +11,7 @@ export type AuctionData = {
     address: string,
     name: string,
     symbol: string,
-    decimals: Number,
+    decimals: number,
   },
   option: {
     id: string,
@@ -34,22 +34,25 @@ export type AuctionData = {
   size: string,
   start: string,
   end: string,
-  bids: Number,
+  bids: number,
   filled: string,
   clearing: string,
-  spot: Number,
+  spot: number,
   live: Boolean
 }
 
 export type BidData = {
   id: string,
   index: string,
+  account: {
+    id: string
+  }
   auction: string,
   size: string,
   payable: string,
-  live: string,
-  claimed: string,
-  hash: string,
+  createtx: string,
+  claimtx: string,
+  canceltx: string,
   bytes: string,
 }
 

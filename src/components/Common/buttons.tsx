@@ -54,9 +54,16 @@ export const LinkButton: React.FC<{
   }) => {
     const hasLink = link !== "";
     const linkRef = useRef<HTMLAnchorElement | null>(null);
+    const openLink = useCallback(() => {
+      if (linkRef !== null && linkRef.current !== null) {
+        linkRef.current.click();
+      }
+    }, []);
+  
+    const handleClick = openLink;
   
     return (
-      <StyledButton>
+      <StyledButton onClick={handleClick}>
         {hasLink ? (
           <InternalButtonLink
             ref={linkRef}

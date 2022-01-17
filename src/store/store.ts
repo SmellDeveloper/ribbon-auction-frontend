@@ -5,12 +5,14 @@ interface GlobalStore {
   pendingTransactions: PendingTransaction[];
   showConnectWallet: boolean;
   gasPrice: string;
+  auctionId: string;
 }
 
 export const initialState: GlobalStore = {
   pendingTransactions: [],
   showConnectWallet: false,
   gasPrice: "",
+  auctionId: "",
 };
 
 interface BidGlobalStore {

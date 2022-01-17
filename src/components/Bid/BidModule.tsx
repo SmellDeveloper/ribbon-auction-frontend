@@ -209,8 +209,6 @@ const BidModule: React.FC<{
   }, [addPendingTransaction, provider, tokenContract]);
 
   
-   
-
   const quantityError = useMemo(() => {
     if (Number(auctionActionForm.quantity)*10**8 > Number(auctionData.size.toString())) {
         return {
@@ -293,12 +291,12 @@ const BidModule: React.FC<{
   }, [loading, error, gnosisContract, auctionActionForm, auctionData, bids]);
 
   const allowance = useTokenAllowance(auctionData.bidding.symbol as Assets, getGnosisAuction(currentChainId!))
-
-    const allowed = Number(allowance) > 0
+  console.log(allowance)
+  const allowed = Number(allowance) > 0
     
 
     const walletBalance = useMemo(() => {
-        return !loading
+        return loading
             ? `${parseFloat(formatUnits(balances[biddingToken], decimals)).toFixed(4)} ${biddingToken}`
             : "LOADING..."
     }, [balances, loading])
