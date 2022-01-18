@@ -143,7 +143,7 @@ export const BidInformationPage: React.FC<{
                     BigNumber.from(bid.payable).mul(10**8).div(bid.size), auctionData.bidding.decimals.toString()
                 )).toFixed(4)
                 
-                return renderBid(index+1, quantity, price, payable, "WBTC")
+                return renderBid(index+1, quantity, price, payable, auctionData.bidding.symbol)
                 })
             : <EmptybidDataText>You have not made any bids.</EmptybidDataText>
             }

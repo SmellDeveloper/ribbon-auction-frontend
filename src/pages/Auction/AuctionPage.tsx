@@ -4,7 +4,7 @@ import AuctionInformation from "../../components/Auction/AuctionInformation";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
 import useTextAnimation from "../../hooks/useTextAnimation";
-import useAuctionOption from "../../hooks/useVaultOption";
+import useAuctionOption from "../../hooks/useAuctionOption";
 import moment from "moment";
 import { useAuctionsData, useBidsData } from "../../hooks/subgraphDataContext";
 import { NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
@@ -18,6 +18,7 @@ import { useUserBalance } from "../../hooks/web3DataContext";
 import LiveIndicator from "../../components/Indicator/Live";
 import { useGlobalState } from "../../store/store";
 import { BigNumber } from "ethers";
+import { usePendingTransactions } from "../../hooks/pendingTransactionsContext";
 
 const StatusText = styled.span`
   font-size: 20px;
@@ -141,6 +142,14 @@ const AuctionPage = () => {
     [library, currentChainId]
   );
 
+  const renderBidModule = useMemo(()=>{
+    return (<>
+      <BidModule auctionData={data}></BidModule>
+      <BidInformationPage auctionData={data} bidData={bids}></BidInformationPage>
+    </>
+    )
+  }, [bids, data])
+
   useEffect(() => {
     setGlobalAuctionId(auctionId)
   }, [auctionId])
@@ -149,13 +158,14 @@ const AuctionPage = () => {
     if (!data) {
       return <Redirect to="/" />;
     } else {
+
       const type = data.option.put ? "P" : "C"
       const time = moment.unix(Number(data.option.expiry)).format("DDMMMYY").toUpperCase()
       
       if (auctionTitle != `${auctionId}-${underlying}-${time}-${type}`) {
         return <Redirect to="/" />;
       }
-
+      // console.log(bids)
       return (
         <AnimatePresence>
           <StatusTitleContainer>
@@ -183,11 +193,8 @@ const AuctionPage = () => {
               
                 {active
                   ? currentChainId == data.chainId
-                    ? data.live ? <ClaimModule auctionData={data} bidData={bids}></ClaimModule>
-                      : (<>
-                          <BidModule auctionData={data}></BidModule>
-                          <BidInformationPage auctionData={data} bidData={bids}></BidInformationPage>
-                        </>)
+                    ? !data.live ? <ClaimModule auctionData={data} bidData={bids}></ClaimModule>
+                      : (renderBidModule)
                     : (<WrongNetworkDescriptionContainer>
                       <WrongNetworkButtonContainer>
                         <WrongNetworkText>

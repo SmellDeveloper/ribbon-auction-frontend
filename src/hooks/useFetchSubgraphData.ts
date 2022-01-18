@@ -2,54 +2,21 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useWeb3React } from "@web3-react/core";
 
-// import {
-//   getSubgraphURIForVersion,
-//   SUBGRAPHS_TO_QUERY,
-//   VaultVersion,
-//   VaultVersionList,
-// } from "../constants/constants";
+
 import {
   defaultSubgraphData,
   SubgraphDataContextType,
 } from "./subgraphDataContext";
-// import { impersonateAddress } from "../utils/development";
-// import {
-//   resolveVaultAccountsSubgraphResponse,
-//   vaultAccountsGraphql,
-// } from "./useAuctionSubgraph";
-// import { isProduction } from "../utils/env";
-// import {
-//   resolveTransactionsSubgraphResponse,
-//   transactionsGraphql,
-// } from "./useTransactions";
-// import {
-//   balancesGraphql,
-//   resolveBalancesSubgraphResponse,
-// } from "./useBalances";
-// import {
-//   resolveVaultActivitiesSubgraphResponse,
-//   vaultActivitiesGraphql,
-// } from "./useVaultActivity";
-// import {
-//   rbnTokenGraphql,
-//   resolveRBNTokenAccountSubgraphResponse,
-//   resolveRBNTokenSubgraphResponse,
-// } from "./useRBNTokenSubgraph";
-// import {
-//   vaultPriceHistoryGraphql,
-//   resolveVaultPriceHistorySubgraphResponse,
-// } from "./useVaultPerformanceUpdate";
 import { BidsGraphql, AuctionGraphql } from "./useAuctionSubgraph"
 import { usePendingTransactions } from "./pendingTransactionsContext";
 import { SUBGRAPHS } from "../constants/constants";
-import { SUBGRAPH_URI } from "../utils/env";
+import { isProduction, SUBGRAPH_URI } from "../utils/env";
 import { AuctionData, AugmentedAuctionData, AugmentedBidData, BidData } from "../models/auction";
 import { useGlobalState } from "../store/store";
-import useVaultActionForm from "./useVaultActionForm";
 import { impersonateAddress } from "../utils/development";
 
 const useFetchSubgraphData = () => {
-  const [globalAuctionId, setGlobalAuctionId] = useGlobalState(
+  const [globalAuctionId, ] = useGlobalState(
     "auctionId"
   );
   const { account: acc, chainId } = useWeb3React();
@@ -57,12 +24,14 @@ const useFetchSubgraphData = () => {
   const [data, setData] =
     useState<SubgraphDataContextType>(defaultSubgraphData);
   const { transactionsCounter } = usePendingTransactions();
+  console.log(transactionsCounter)
+
   const [, setMulticallCounter] = useState(0);
 
   const doMulticall = useCallback(async () => {
-    // if (!isProduction()) {
-    //   console.time("Subgraph Data Fetch");
-    // }
+    if (!isProduction()) {
+      console.time("Subgraph Data Fetch");
+    }
 
     /**
      * We keep track with counter so to make sure we always only update with the latest info
@@ -114,52 +83,10 @@ const useFetchSubgraphData = () => {
       }).flat()
     }
 
-    // if (account) {
-    //   const bids = allSubgraphResponses.map((data) => {
-    //     return data.data.bids.map((auction: AuctionData) => {
-    //       const augmentedAuction: any = auction
-    //       augmentedAuction.chainId = data.chainId
-    //       return augmentedAuction as AugmentedAuctionData
-    //     })
-    //   }).flat()
-    // }
-
     const responses = {
       auctions: auctions,
       bids: bids
     }
-
-    // const organizedResponse
-    // console.log(responses)
-    // // Group all the responses of the same version together
-    // // Merge them without overriding the previous properties
-    // const responsesAcrossVersions: Record<VaultVersion, any> =
-    //   Object.fromEntries(
-    //     VaultVersionList.map((version: VaultVersion) => {
-    //       const mergedResponse: any = {};
-
-    //       const responsesForVersion = allSubgraphResponses
-    //         .filter(([resVersion, _]) => resVersion === version)
-    //         .map(([_, res]) => res);
-
-    //       responsesForVersion.forEach((response: any) => {
-    //         Object.keys(response).forEach((key: string) => {
-    //           // Null state = [] | null
-    //           // Non-empty state = [xxx] | {x: 1}
-    //           const mergedHasProperty =
-    //             mergedResponse[key] ||
-    //             (Array.isArray(mergedResponse[key]) &&
-    //               mergedResponse[key].length);
-
-    //           if (!mergedHasProperty) {
-    //             mergedResponse[key] = response[key];
-    //           }
-    //         });
-    //       });
-
-    //       return [version, mergedResponse];
-    //     })
-    //   ) as Record<VaultVersion, any>;
 
     setMulticallCounter((counter) => {
       if (counter === currentCounter) {
@@ -173,9 +100,9 @@ const useFetchSubgraphData = () => {
       return counter;
     });
 
-    // if (!isProduction()) {
-    //   console.timeEnd("Subgraph Data Fetch");
-    // }
+    if (!isProduction()) {
+      console.timeEnd("Subgraph Data Fetch");
+    }
   }, [account, chainId]);
 
   useEffect(() => {

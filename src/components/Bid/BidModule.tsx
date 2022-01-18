@@ -17,7 +17,7 @@ import useTokenAllowance from "../../hooks/useTokenAllowance";
 import { usePendingTransactions } from "../../hooks/pendingTransactionsContext";
 import { getERC20Token } from "../../hooks/useERC20Token";
 import { useWeb3Context } from "../../hooks/web3Context";
-import useAuction from "../../hooks/useVault";
+import useAuction from "../../hooks/useAuction";
 import { AuctionData, AugmentedBidData } from "../../models/auction";
 
 const BidButtonContainer = styled.div`
@@ -165,8 +165,8 @@ const BidModule: React.FC<{
 
   const { data: balances, loading: balanceLoading } = useUserBalance()
   const { data: bids, loading: bidsLoading } = useBidsData(auctionData.id)
-
-  const loading = !bidsLoading && !balanceLoading
+  
+  const loading = bidsLoading || balanceLoading
   const biddingToken = auctionData.bidding.symbol as Assets
   const decimals = auctionData.bidding.decimals as number
 
@@ -185,13 +185,13 @@ const BidModule: React.FC<{
 
   const [waitingApproval, setWaitingApproval] = useState(false);
   const approveLoadingText = useTextAnimation(waitingApproval, {
-    texts: ["APPROVING", "APPROVING .", "APPROVING ..", "APPROVING ..."],
+    texts: ["APPROVING", "APPROVING.", "APPROVING..", "APPROVING..."],
     interval: 250,
   });
 
   const handleApproveToken = useCallback(async () => {
     setWaitingApproval(true);
-    console.log(tokenContract)
+    
     if (tokenContract) {
       const amount =
         "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -201,6 +201,8 @@ const BidModule: React.FC<{
           getGnosisAuction(currentChainId!)!,
           amount
         );
+        await provider.waitForTransaction(tx.hash, 5);
+        console.log("hi")
       } catch (err) {
       } finally {
         setWaitingApproval(false);
@@ -225,7 +227,8 @@ const BidModule: React.FC<{
 
   const payableError = useMemo(() => {
     if (!loading) {
-      if (Number(auctionActionForm.payable) > Number(balances[biddingToken].toString())) {
+      if (Number(auctionActionForm.payable) > Number(ethers.utils.formatUnits(balances[biddingToken], decimals))) {
+        console.log("hi")
         return {
           error: true,
           msg: "INSUFFICIENT BALANCE"
@@ -242,7 +245,7 @@ const BidModule: React.FC<{
         msg: ""
       }
     }
-  }, [auctionActionForm, balances, auctionData, loading])
+  }, [auctionActionForm, balances, auctionData, biddingToken, loading])
 
   const completeError = useMemo(() => {
     if (!loading) {
@@ -272,31 +275,40 @@ const BidModule: React.FC<{
 //   // console.log(error)
   const handlePlaceOrder = useCallback(async () => {
     if (gnosisContract && !loading) {
-  
+      
       const bidBytes = bids.map((value: AugmentedBidData) => {
         return value.bytes
       })
-
+      
       try {
         const tx = await gnosisContract.placeSellOrders(
           auctionActionForm.auctionId,
           [ethers.utils.parseUnits(auctionActionForm.quantity, 8)],
-          [ethers.utils.parseUnits(auctionActionForm.payable, auctionData.bidding.decimals.toString())],
-          !bidBytes ? bidBytes : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
+          [ethers.utils.parseUnits(auctionActionForm.payable, auctionData.bidding.decimals)],
+          bidBytes ? bidBytes : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
           "0x"
         )
-      } catch {}
+
+        const txhash = tx.hash;
+
+        addPendingTransaction({
+          txhash,
+          type: "approval"
+        });
+
+      } catch (err) {
+        console.log(err)
+      }
 
     }
-  }, [loading, error, gnosisContract, auctionActionForm, auctionData, bids]);
+  }, [loading, error, gnosisContract, auctionActionForm, auctionData, bids, addPendingTransaction]);
 
   const allowance = useTokenAllowance(auctionData.bidding.symbol as Assets, getGnosisAuction(currentChainId!))
-  console.log(allowance)
   const allowed = Number(allowance) > 0
     
 
     const walletBalance = useMemo(() => {
-        return loading
+        return !loading
             ? `${parseFloat(formatUnits(balances[biddingToken], decimals)).toFixed(4)} ${biddingToken}`
             : "LOADING..."
     }, [balances, loading])
@@ -346,7 +358,7 @@ const BidModule: React.FC<{
         <BidButtonContainer>
           <BidButton onClick={allowed 
             ? handlePlaceOrder
-            : handleApproveToken}  >{ //disabled={error}
+            : handleApproveToken} disabled={waitingApproval || error}>{ 
               allowed
                 ? "PLACE BID"
                 : waitingApproval

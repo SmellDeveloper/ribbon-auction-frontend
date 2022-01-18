@@ -6,7 +6,7 @@ import { CHAINID, isDevelopment, isProduction } from "../utils/env";
 import { useWeb3Context } from "./web3Context";
 import { defaultVaultData, VaultData, VaultDataResponses } from "../models/auction"
 import { isAuctionSupportedOnChain } from "../utils/auction";
-import { getVault } from "./useAuction";
+import { getVault } from "./useVault";
 
 const useFetchVaultData = (): VaultData => {
   const {

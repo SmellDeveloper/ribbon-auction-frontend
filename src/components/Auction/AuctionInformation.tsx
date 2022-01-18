@@ -199,11 +199,13 @@ const AuctionInformation: React.FC<{
     const minBid = minBidPrice.toFixed(fixed)
 
     const highestBidPrice = Math.max(...bidData.map((value) => {
-      return parseFloat(BigNumber.from(value.payable).mul(10**8).div(value.size).toString())
+      return Number(
+        ethers.utils.formatUnits(BigNumber.from(value.payable).mul(10**8).div(value.size), data.bidding.decimals)
+      )
     }))
 
     const highestBid = bidData.length > 0
-    ? highestBidPrice.toFixed(fixed) + " " + data.bidding.symbol
+    ? highestBidPrice + " " + data.bidding.symbol
     : "-"
 
     const topInformationItem = (

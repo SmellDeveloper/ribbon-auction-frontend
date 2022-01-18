@@ -1,20 +1,5 @@
 import React, { ReactElement, useContext } from "react";
-import { AuctionData, AugmentedAuctionData, AugmentedBidData, BidData } from "../models/auction";
-// import {
-//   ERC20TokenAccountSubgraphData,
-//   ERC20TokenSubgraphData,
-// } from "../models/token";
-
-// import {
-//   BalanceUpdate,
-//   defaultV2VaultPriceHistoriesData,
-//   defaultVaultAccountsData,
-//   defaultVaultActivitiesData,
-//   VaultPriceHistoriesData,
-//   VaultAccountsData,
-//   VaultActivitiesData,
-//   VaultTransaction,
-// } from "../models/vault";
+import { AugmentedAuctionData, AugmentedBidData} from "../models/auction";
 import useFetchSubgraphData from "./useFetchSubgraphData";
 
 export type SubgraphDataContextType = {

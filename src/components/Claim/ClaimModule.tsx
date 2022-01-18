@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import styled from "styled-components";
 import theme from "../../design/theme";
 import useVaultActionForm from "../../hooks/useVaultActionForm";
-import useAuction from "../../hooks/useVault";
+import useAuction from "../../hooks/useAuction";
 import { AugmentedAuctionData, AugmentedBidData } from "../../models/auction";
 import { impersonateAddress } from "../../utils/development";
 import { decodeOrder } from "../../utils/order";

@@ -68,6 +68,8 @@ export const PendingTransactionsContextProvider: React.FC<{
             };
           })
         );
+      } else {
+        setTransactionsCounter((counter) => counter - 1);
       }
     }, []);
   }, [pendingTransactions, library, setPendingTransactions]);

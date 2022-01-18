@@ -44,4 +44,5 @@ export type PendingTransaction = {
       type: "transfer";
       amount: string;
     }
+  | {}
 );

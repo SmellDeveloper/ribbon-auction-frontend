@@ -11,7 +11,7 @@ export const SUBGRAPH_URI: Record<number, string> = {
     "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction",
   [CHAINID.ETH_KOVAN]:
     process.env.REACT_APP_KOVAN_SUBGRAPHQL_URL ||
-    "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction",
+    "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction-kovan",
   [CHAINID.AVAX_FUJI]:
     process.env.REACT_APP_FUJI_SUBGRAPHQL_URL ||
     "https://api.thegraph.com/subgraphs/name/stevenwal/gnosis-auction-avax",
