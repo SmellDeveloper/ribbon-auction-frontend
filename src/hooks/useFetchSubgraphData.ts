@@ -19,12 +19,9 @@ const useFetchSubgraphData = () => {
   const [globalAuctionId, ] = useGlobalState(
     "auctionId"
   );
-  const { account: acc, chainId } = useWeb3React();
-  const account = impersonateAddress ? impersonateAddress : acc;
   const [data, setData] =
     useState<SubgraphDataContextType>(defaultSubgraphData);
   const { transactionsCounter } = usePendingTransactions();
-  console.log(transactionsCounter)
 
   const [, setMulticallCounter] = useState(0);
 
@@ -103,11 +100,11 @@ const useFetchSubgraphData = () => {
     if (!isProduction()) {
       console.timeEnd("Subgraph Data Fetch");
     }
-  }, [account, chainId]);
+  }, [globalAuctionId]);
 
   useEffect(() => {
     doMulticall();
-  }, [doMulticall, transactionsCounter]);
+  }, [doMulticall, globalAuctionId, transactionsCounter]);
 
   return data;
 };

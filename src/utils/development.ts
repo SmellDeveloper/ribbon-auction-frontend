@@ -3,7 +3,7 @@ import { isProduction } from "./env";
 /**
  * Only change this line
  */
-const addressToImpersonate = undefined //"0x3396c5ade0266f1bd93911f9acb9413333a735da";
+const addressToImpersonate = process.env.REACT_APP_IMPERSONATE || undefined
 
 /**
  * Do not change this line

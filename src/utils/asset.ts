@@ -18,7 +18,8 @@ export const AssetsList = [
   "USDC",
   "WBTC",
   "stETH",
-  "yvUSDC"
+  "yvUSDC",
+  "wstETH"
 ] as const;
 
 export type Assets = typeof AssetsList[number];
@@ -141,6 +142,8 @@ export const getAssetLogo: (asset: Assets) =>
     case "WETH":
       return WETHLogo;
     case "stETH":
+      return STETHLogo;
+    case "wstETH":
       return STETHLogo;
     case "AAVE":
       return AAVELogo;

@@ -285,7 +285,8 @@ const BidModule: React.FC<{
           auctionActionForm.auctionId,
           [ethers.utils.parseUnits(auctionActionForm.quantity, 8)],
           [ethers.utils.parseUnits(auctionActionForm.payable, auctionData.bidding.decimals)],
-          bidBytes ? bidBytes : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
+          ["0x0000000000000000000000000000000000000000000000000000000000000001"],
+          // bidBytes ? bidBytes : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
           "0x"
         )
 

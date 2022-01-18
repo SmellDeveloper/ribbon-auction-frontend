@@ -1,11 +1,11 @@
 import React from "react";
 import styled, { keyframes } from "styled-components";
 
-import Logo from "../assets/icons/logo";
-import { Title } from "../design";
-import sizes from "../design/sizes";
-import theme from "../design/theme";
-import useScreenSize from "../hooks/useScreenSize";
+import Logo from "../../assets/icons/logo";
+import { Title } from "../../design";
+import sizes from "../../design/sizes";
+import theme from "../../design/theme";
+import useScreenSize from "../../hooks/useScreenSize";
 
 const FloatingContainer = styled.div<{ height: number }>`
   width: 100%;
@@ -17,6 +17,7 @@ const FloatingContainer = styled.div<{ height: number }>`
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  text-align: center;
 
   @media (max-width: ${sizes.md}px) {
     flex-direction: column;
@@ -43,16 +44,21 @@ const RotatingLogo = styled(Logo)`
   }
 `;
 
-const NotFound = () => {
+const LogoContainer = styled.div`
+  display: block
+`
+
+const NotAvailable = () => {
   const { height } = useScreenSize();
   return (
     <FloatingContainer height={height}>
-      <RotatingLogo height={120} width={120} />
-      <Title color={"#000000"} fontSize={160} lineHeight={160}>
-        404
+
+      <LogoContainer><RotatingLogo height={120} width={120} /></LogoContainer>
+      <Title fontSize={20} lineHeight={30}>
+        Ribbon Auction is currently only available on larger screens
       </Title>
     </FloatingContainer>
   );
 };
 
-export default NotFound;
+export default NotAvailable;

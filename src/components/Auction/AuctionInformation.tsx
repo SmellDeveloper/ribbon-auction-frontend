@@ -11,6 +11,13 @@ import { decodeOrder } from "../../utils/order";
 import { TimerIcon } from "../../assets/icons/icons";
 import { useFetchAssetsPrice } from "../../hooks/fetchAssetPrice";
 import { numberWithCommas } from "../../utils/text";
+import { StETH } from "../../codegen";
+import { StETHFactory } from "../../codegen/StETHFactory";
+import { useWeb3React } from "@web3-react/core";
+import { getERC20TokenAddress } from "../../constants/constants";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { YvUSDCFactory } from "../../codegen/YvUSDCFactory";
+import { formatUnits, parseUnits } from "ethers/lib/utils";
 
 const AuctionInformationContainer = styled.div`
   border-radius: 5px;
@@ -133,13 +140,30 @@ const DetailsContainer = styled.div`
   }
 `
 
+const AdditionalCapsule = styled.div<{color: string}>`
+  display: table;
+  font-family: VCR;
+  border-radius: 10px;
+  background-color: ${(props) => props.color}20;
+  margin: 7px auto 0px auto;
+  font-size: 12px;
+  color: ${(props) => props.color};
+  padding: 3px 12px;
+  font-weight: 500;
+`
+
 const AuctionInformation: React.FC<{
     data: AuctionData
     bidData: AugmentedBidData[]
+    chainId: number | undefined
+    library: any
 }> = ({
   data,
-  bidData
+  bidData,
+  chainId,
+  library
 }) => {
+    // const { account, library, chainId} = useWeb3React()
     const priceFeed = useFetchAssetsPrice()
     const price = priceFeed.data[data.option.underlying.symbol as Assets].latestPrice.toFixed(2)
     const Logo = getAssetLogo(data.bidding.symbol as Assets)
@@ -150,6 +174,64 @@ const AuctionInformation: React.FC<{
     const color = getAssetColor(data.bidding.symbol as Assets)
 
     const title = data.option.symbol.split("/")[1]
+    const extraInfo = title.split("-")[0]
+    const [wstethPrice, setWstethPrice] = useState<BigNumber>();
+    const [yvusdcPrice, setYvusdcPrice] = useState<BigNumber>();
+    
+    const wstethContract = useMemo(()=>{
+      try {
+        const address = getERC20TokenAddress("wsteth" as Assets, chainId!)
+        return StETHFactory.connect(address, library.getSigner())
+      } catch {
+        return
+      }
+    }, [chainId, library])
+
+    useEffect(() => {
+
+      (async () => {
+        try {
+          setWstethPrice(await wstethContract!.stEthPerToken());
+        } catch {}
+      })();
+    }, [wstethContract]);
+
+    const timeLeft = ((Number(data.end)-moment().unix())%(60*60))
+    const minute = Math.floor(timeLeft/60)
+    const second = timeLeft%60
+
+    const clock = useMemo(()=>{
+      return `${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`
+    }, [minute, second])
+
+    const yvusdcContract = useMemo(()=>{
+      try {
+        const address = getERC20TokenAddress("yvusdc" as Assets, chainId!)
+        return YvUSDCFactory.connect(address, library.getSigner())
+      } catch {
+        return
+      }
+    }, [chainId, library])
+
+    useEffect(() => {
+
+      (async () => {
+      try {
+        setYvusdcPrice(await yvusdcContract!.pricePerShare());
+      } catch {}
+      })();
+    }, [yvusdcContract]);
+
+    const additionalInfo = useMemo(() => {
+      if (wstethPrice && extraInfo == "wstETH") {
+        return `1 wstETH = ${parseFloat(formatUnits(wstethPrice, 18)).toFixed(4)} ETH`
+      } else if (yvusdcPrice && extraInfo == "yvUSDC") {
+        return `1 yvUSDC = ${parseFloat(formatUnits(yvusdcPrice, 6)).toFixed(4)} USDC`
+      } else {
+        return
+      }
+    }, [wstethPrice, yvusdcPrice])
+
     const time = moment.unix(
       Number(data.option.expiry)).format("DD MMM YY, HH:mm [UTC]"
     )
@@ -204,19 +286,26 @@ const AuctionInformation: React.FC<{
       )
     }))
 
-    const highestBid = bidData.length > 0
-    ? highestBidPrice + " " + data.bidding.symbol
-    : "-"
+    const highestBid = useMemo(() => {
+      return bidData.length > 0
+        ? highestBidPrice.toFixed(2) + " " + data.bidding.symbol
+        : "-"
+    }, [bidData, data])
+
 
     const topInformationItem = (
       caption: string, 
-      value: string, 
-      color: string
+      value: string,
+      color: string,
+      info?: string,
     ) => {
       return (
         <TopInformation>
           <TopCaption>{caption} </TopCaption>
           <TopValue color={color}>{value}</TopValue>
+          {info
+            ?<AdditionalCapsule color={color}>{info}</AdditionalCapsule>
+            :<></>}
         </TopInformation>
       )
     }
@@ -255,13 +344,13 @@ const AuctionInformation: React.FC<{
               {live
                 ? topInformationItem(
                     "Highest Bid (per oToken):", 
-                    `${highestBid}`, color
+                    `${highestBid}`, color,
                   )
                 : (<>
                     {topInformationItem(
                       "Clearing Price (per oToken):", 
                       `${clearing} ${data.bidding.symbol}`, 
-                      color
+                      color, additionalInfo
                     )}
                     {topInformationItem(
                       "Filled:", filled + "%", color
@@ -273,7 +362,7 @@ const AuctionInformation: React.FC<{
                     <TimerIcon color={color} height="25px" width="25px"></TimerIcon>
                     <TimerText color={color}>
                         {live
-                            ? "14:21"
+                            ? clock
                             :  Number(data.end) < moment().unix()
                                 ? "CLOSED"
                                 : "--:--"
@@ -286,7 +375,7 @@ const AuctionInformation: React.FC<{
         <DetailsContainer>
           <DetailComponent 
             caption="Size (oTokens):" 
-            value={size}>  
+            value={numberWithCommas(size)}>  
           </DetailComponent>
           <DetailComponent 
             caption="Min. Bid (per oToken):" 

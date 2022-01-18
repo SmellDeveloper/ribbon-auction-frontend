@@ -124,6 +124,10 @@ const AuctionPage = () => {
   const { auction, auctionTitle } = useAuctionOption();
   const [auctionId, underlying, strike, type] = auctionTitle!.split("-")
 
+  useEffect(() => {
+    setGlobalAuctionId(auctionId)
+  }, [auctionId])
+
   const { data: balances, loading: balanceLoading } = useUserBalance()
   const { data: auctions, loading: auctionsLoading } = useAuctionsData(auctionId)
   const { data: bids, loading: bidsLoading } = useBidsData(auctionId)
@@ -150,9 +154,9 @@ const AuctionPage = () => {
     )
   }, [bids, data])
 
-  useEffect(() => {
-    setGlobalAuctionId(auctionId)
-  }, [auctionId])
+  
+
+  
   
   if (!loading) {
     if (!data) {
@@ -186,7 +190,7 @@ const AuctionPage = () => {
             
           </StatusTitleContainer>
     
-          <AuctionInformation data={data} bidData={bids}></AuctionInformation>
+          <AuctionInformation data={data} bidData={bids} chainId={currentChainId} library={library}></AuctionInformation>
           
           <ListContainer>
             <WalletModule>

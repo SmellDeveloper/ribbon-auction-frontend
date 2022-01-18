@@ -8,6 +8,7 @@ import { AugmentedAuctionData, AugmentedBidData } from "../../models/auction";
 import { impersonateAddress } from "../../utils/development";
 import { decodeOrder } from "../../utils/order";
 import { BigNumber, ethers } from "ethers";
+import { numberWithCommas } from "../../utils/text";
 
 const EmptyDescriptionContainer = styled.div`
   font-size: 14px;
@@ -131,7 +132,7 @@ const ClaimModule: React.FC<{
   bidsWithPrice.sort((a, b) => {
     return parseInt(ethers.utils.formatUnits(b.price.sub(a.price), 8))
   })
-  console.log(clearingPrice.toString())
+
   const winningBids = bidsWithPrice.map((value) => {
     const oTokenQuantity = value.win 
       ? BigNumber.from(Math.min(Number(value.size), Number(availableSize)))
@@ -151,8 +152,6 @@ const ClaimModule: React.FC<{
   const unclaimedBids = accountBids.filter((value)=>{
     return !value.claimtx && !value.canceltx
   })
-  console.log(accountBids)
-  console.log(unclaimedBids)
 
   const oTokenClaimable = accountBids.reduce((sum: BigNumber, a) => sum.add(a.otokenClaim), BigNumber.from(0)); 
   const biddingClaimable = accountBids.reduce((sum: BigNumber, a) => sum.add(a.bidClaim), BigNumber.from(0)); 
@@ -179,18 +178,20 @@ const ClaimModule: React.FC<{
     <InputBlock>
       <InputCaption>OTOKEN WON</InputCaption>
       <Input disabled={true}
-            type="number"
+            type="text"
             className="form-control"
             aria-label="payable"
-            value={parseFloat(ethers.utils.formatUnits(oTokenClaimable, 8)).toFixed(2)}
+            value={numberWithCommas(parseFloat(ethers.utils.formatUnits(oTokenClaimable, 8)).toFixed(2))}
             placeholder="0"
           ></Input>
       <InputCaption>{auctionData.bidding.symbol} CLAIMABLE</InputCaption>
       <Input disabled={true}
-            type="number"
+            type="text"
             className="form-control"
             aria-label="payable"
-            value={parseFloat(ethers.utils.formatUnits(biddingClaimable, auctionData.bidding.decimals)).toFixed(2)}
+            value={numberWithCommas(
+              parseFloat(ethers.utils.formatUnits(biddingClaimable, auctionData.bidding.decimals)).toFixed(2))
+            }
             placeholder="0"
           ></Input>
     </InputBlock>

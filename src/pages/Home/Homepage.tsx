@@ -69,15 +69,15 @@ const Homepage = () => {
       <ListTitle>Upcoming Auctions</ListTitle>
       <ListContainer>
       {!loading
-          ? recentAuctions.slice(0,5).reverse().map((data) => {
-
-            return (
-              <AuctionItem 
-                variant="upcoming"
-                data={data}
-              ></AuctionItem>
-            )
-          })
+          ? recentAuctions.length > 0
+            ? recentAuctions.slice(0,5).reverse().map((data) => {
+                return (
+                  <AuctionItem 
+                    variant="upcoming"
+                    data={data}
+                  ></AuctionItem>)
+              })
+            : <LoadingContainer>{"There are no upcoming auctions"}</LoadingContainer>
           : <LoadingContainer>{loadingText}</LoadingContainer>
         }
       </ListContainer>
@@ -85,15 +85,15 @@ const Homepage = () => {
       <ListTitle>Recent Auctions</ListTitle>
       <ListContainer>
         {!loading
-          ? recentAuctions.reverse().map((data) => {
-
-            return (
-              <AuctionItem 
-                variant="concluded"
-                data={data}
-              ></AuctionItem>
-            )
-          })
+          ? recentAuctions.length > 0
+            ? recentAuctions.reverse().map((data) => {
+                return (
+                  <AuctionItem 
+                    variant="concluded"
+                    data={data}
+                  ></AuctionItem>)
+              })
+            : <LoadingContainer>{"There are no recent auctions"}</LoadingContainer>
           : <LoadingContainer>{loadingText}</LoadingContainer>
         }
       </ListContainer>

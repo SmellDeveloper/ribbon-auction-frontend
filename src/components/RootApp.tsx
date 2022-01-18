@@ -11,6 +11,7 @@ import useScreenSize from "../hooks/useScreenSize";
 import WalletConnectModal from "../components/Wallet/WalletConnectModal";
 import NotFound from "../pages/NotFound";
 import colors from "../design/colors";
+import NotAvailable from "./Header/EmptyHeader";
 
 const Root = styled(Container)<{ screenHeight: number}>`
   background-color: ${colors.background.one};
@@ -20,34 +21,36 @@ const Root = styled(Container)<{ screenHeight: number}>`
 
 const RootApp = () => {
   useEagerConnect();
-  const { height: screenHeight } = useScreenSize();
-
+  const { height: screenHeight, width: screenWidth } = useScreenSize();
+  
   return (
     <Root id="appRoot" screenHeight={screenHeight}>
-      <WalletConnectModal />
-      {/* <YourPositionModal />
-      <WithdrawReminderToast /> */}
-
-      <Router>
-        <Header />
-        {/* <TxStatusToast /> */}
-        <Switch>
-          <Route path="/" exact>
-            <Homepage />
-          </Route>
-          <Route path="/auction/:auctionTitle">
-            <AuctionPage />
-          </Route>
-          {/* <Route path="/portfolio">
-            <PortfolioPage />
-          </Route>
-          */}
-          <Route>
-            <NotFound />
-          </Route> 
-        </Switch>
-        {/* <Footer /> */}
-      </Router>
+      {screenWidth > 1200 ?
+        (<><WalletConnectModal />
+        {/* <YourPositionModal />
+        <WithdrawReminderToast /> */}
+  
+        <Router>
+          <Header/>
+          {/* <TxStatusToast /> */}
+          <Switch>
+            <Route path="/" exact>
+              <Homepage />
+            </Route>
+            <Route path="/auction/:auctionTitle">
+              <AuctionPage />
+            </Route>
+            {/* <Route path="/portfolio">
+              <PortfolioPage />
+            </Route>
+            */}
+            <Route>
+              <NotFound />
+            </Route> 
+          </Switch>
+          {/* <Footer /> */}
+        </Router></>)
+        : <><NotAvailable></NotAvailable></>}
     </Root>
   );
 };

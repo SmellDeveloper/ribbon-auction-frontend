@@ -30,6 +30,7 @@ const COINGECKO_CURRENCIES = {
   USDC: "usd-coin",
   yvUSDC: undefined,
   stETH: "staked-ether",
+  wstETH: "staked-ether",
   AAVE: "aave",
   WAVAX: "avalanche-2",
 };

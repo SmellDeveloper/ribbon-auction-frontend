@@ -5,3 +5,5 @@ export type { GnosisEasyAuction } from "./GnosisEasyAuction";
 export type { RibbonThetaVault } from "./RibbonThetaVault";
 export type { RibbonThetaVaultSTETH } from "./RibbonThetaVaultSTETH";
 export type { IERC20 } from "./IERC20";
+export type { YvUSDC } from "./YvUSDC";
+export type { StETH } from "./StETH";

@@ -61,8 +61,7 @@ const useVaultActionForm = (auctionId: string) => {
       if (auctionActionForm.lastAction != "price" || !auctionActionForm.prevAction) {
         prevAction = auctionActionForm.lastAction
       }
-      console.log(prevAction)
-      console.log(auctionActionForm.lastAction)
+      
       let payable = auctionActionForm.payable
       if (Number(auctionActionForm.quantity) > 0 && prevAction == "quantity") {
         const price = ethers.utils.parseUnits(rawInput ? rawInput : "0", decimal)

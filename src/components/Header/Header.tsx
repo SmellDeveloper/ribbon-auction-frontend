@@ -1,16 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
-import { useRouteMatch } from "react-router-dom";
-import { useWeb3React } from "@web3-react/core";
 
 import HeaderLogo from "./HeaderLogo";
 import colors from "../../design/colors";
 import sizes from "../../design/sizes";
-import { Title, BaseLink } from "../../design";
-import MenuButton from "../Common/MenuButton";
 import AccountStatus from "../Wallet/AccountStatus";
 import theme from "../../design/theme";
-import MobileOverlayMenu from "../Common/MobileOverlayMenu";
 import NetworkSwitcherButton from "../NetworkSwitcher/NetworkSwitcherButton";
 
 export interface NavItemProps {
@@ -66,6 +61,7 @@ const Header = () => {
       </HeaderButtonContainer>
       
       <AccountStatus variant="desktop" />
+      
     </HeaderContainer>
   );
 };
