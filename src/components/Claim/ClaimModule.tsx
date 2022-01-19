@@ -1,5 +1,5 @@
 import { useWeb3React } from "@web3-react/core";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import styled from "styled-components";
 import theme from "../../design/theme";
 import useVaultActionForm from "../../hooks/useVaultActionForm";
@@ -113,7 +113,9 @@ const ClaimModule: React.FC<{
   } = useVaultActionForm(auctionData.id);
 
   const gnosisContract = useAuction()
-
+  useEffect(()=>{
+    console.log(bidData)
+  }, [])
   const clearingOrder = decodeOrder(auctionData.clearing)
 
   const clearingPrice = 
@@ -134,16 +136,22 @@ const ClaimModule: React.FC<{
   })
 
   const winningBids = bidsWithPrice.map((value) => {
-    const oTokenQuantity = value.win 
-      ? BigNumber.from(Math.min(Number(value.size), Number(availableSize)))
-      : BigNumber.from(0)
+    const newSize = clearingPrice.lte(value.price)
+            ? BigNumber.from(value.payable).mul(10**8).div(clearingPrice)
+            : BigNumber.from(0)
+
+    const oTokenQuantity = newSize.lt(availableSize)
+      ? newSize
+      : availableSize
     availableSize = availableSize.sub(oTokenQuantity)
+
     const biddingQuantity = value.win
       ? BigNumber.from(value.payable).sub(oTokenQuantity.mul(clearingPrice).div(10**8))
       : BigNumber.from(value.payable)
 
     return {...value, otokenClaim: oTokenQuantity, bidClaim: biddingQuantity}
   })
+  
 
   const accountBids = winningBids.filter((value)=>{
     return value.account.id == account && value.win

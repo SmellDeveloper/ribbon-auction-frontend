@@ -18,6 +18,7 @@ import { getERC20TokenAddress } from "../../constants/constants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { YvUSDCFactory } from "../../codegen/YvUSDCFactory";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
+import { useWeb3Context } from "../../hooks/web3Context";
 
 const AuctionInformationContainer = styled.div`
   border-radius: 5px;
@@ -155,13 +156,11 @@ const AdditionalCapsule = styled.div<{color: string}>`
 const AuctionInformation: React.FC<{
     data: AuctionData
     bidData: AugmentedBidData[]
-    chainId: number | undefined
-    library: any
+    additionalInfo: string | undefined
 }> = ({
   data,
   bidData,
-  chainId,
-  library
+  additionalInfo
 }) => {
     // const { account, library, chainId} = useWeb3React()
     const priceFeed = useFetchAssetsPrice()
@@ -172,29 +171,9 @@ const AuctionInformation: React.FC<{
         : "90px"
 
     const color = getAssetColor(data.bidding.symbol as Assets)
-
+    const { provider } = useWeb3Context();
     const title = data.option.symbol.split("/")[1]
     const extraInfo = title.split("-")[0]
-    const [wstethPrice, setWstethPrice] = useState<BigNumber>();
-    const [yvusdcPrice, setYvusdcPrice] = useState<BigNumber>();
-    
-    const wstethContract = useMemo(()=>{
-      try {
-        const address = getERC20TokenAddress("wsteth" as Assets, chainId!)
-        return StETHFactory.connect(address, library.getSigner())
-      } catch {
-        return
-      }
-    }, [chainId, library])
-
-    useEffect(() => {
-
-      (async () => {
-        try {
-          setWstethPrice(await wstethContract!.stEthPerToken());
-        } catch {}
-      })();
-    }, [wstethContract]);
 
     const timeLeft = ((Number(data.end)-moment().unix())%(60*60))
     const minute = Math.floor(timeLeft/60)
@@ -204,50 +183,108 @@ const AuctionInformation: React.FC<{
       return `${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`
     }, [minute, second])
 
-    const yvusdcContract = useMemo(()=>{
-      try {
-        const address = getERC20TokenAddress("yvusdc" as Assets, chainId!)
-        return YvUSDCFactory.connect(address, library.getSigner())
-      } catch {
-        return
-      }
-    }, [chainId, library])
-
-    useEffect(() => {
-
-      (async () => {
-      try {
-        setYvusdcPrice(await yvusdcContract!.pricePerShare());
-      } catch {}
-      })();
-    }, [yvusdcContract]);
-
-    const additionalInfo = useMemo(() => {
-      if (wstethPrice && extraInfo == "wstETH") {
-        return `1 wstETH = ${parseFloat(formatUnits(wstethPrice, 18)).toFixed(4)} ETH`
-      } else if (yvusdcPrice && extraInfo == "yvUSDC") {
-        return `1 yvUSDC = ${parseFloat(formatUnits(yvusdcPrice, 6)).toFixed(4)} USDC`
-      } else {
-        return
-      }
-    }, [wstethPrice, yvusdcPrice])
-
     const time = moment.unix(
       Number(data.option.expiry)).format("DD MMM YY, HH:mm [UTC]"
     )
     const size = parseFloat(
         ethers.utils.formatUnits(data.size, 8)
     ).toFixed(2)
-    const filled = parseFloat(
-        ethers.utils.formatUnits(BigNumber.from(data.filled).mul(10**8).div(data.size), 6)
-    ).toFixed(0)
+    
 
     const strike = parseFloat(ethers.utils.formatUnits(
       data.option.strike,
       8
     )).toFixed(2)
-  
+      
     
+    let prices:BigNumber[] = []
+    
+    const clear = useMemo(()=>{
+      return bidData.map((value) => {
+        return {
+          ...value,
+          price: BigNumber.from(value.payable).mul(10**8).div(value.size),
+          size: BigNumber.from(value.size)}
+      }).sort((a, b) => {
+        return Number(b.price.sub(a.price))
+        })
+    }, [bidData])
+
+    let availableSize = BigNumber.from(data.size)
+
+    const clearFind = useMemo(()=>{
+
+      return clear.map((value) => {
+        const oTokenQuantity = value.size.lt(availableSize)
+          ? value.size
+          : availableSize
+
+        availableSize = availableSize.sub(oTokenQuantity)
+        if (oTokenQuantity.gt(0)) prices.push(value.price)
+          
+        return {
+          ...value,
+          allocated: oTokenQuantity
+        }
+      })
+    },[clear])
+
+    const priceDiscovery = useMemo(()=>{
+      const discovery = prices.map((currentPrice) => {
+        let availableSize = BigNumber.from(data.size)
+
+        const adjusted = clearFind.map((value) => {
+          const newSize = currentPrice.lte(value.price)
+            ? BigNumber.from(value.payable).mul(10**8).div(currentPrice)
+            : BigNumber.from(0)
+
+          const oTokenQuantity = newSize.lt(availableSize)
+            ? newSize
+            : availableSize
+
+          availableSize = availableSize.sub(oTokenQuantity)
+            
+          return {
+            ...value,
+            allocated: oTokenQuantity.toString(),
+            size: value.size.toString()
+          }
+        })
+
+        return {
+          clearing: currentPrice,
+          adjustedBids: availableSize.gt(0)
+            ? undefined
+            : adjusted
+        }
+      })
+
+      return discovery.filter((value)=>{
+        return value.adjustedBids
+      }).pop()
+    },[])
+
+    
+
+    const filledPercent = useMemo(()=>{
+      return BigNumber.from(data.size).sub(availableSize).mul(10**6).div(data.size)
+    }, [])
+
+    
+
+    // const price
+    
+    useEffect(()=>{
+      // console.log(availableSize.toString())
+      // console.log(clearFind)
+      // console.log(lastHighest.toString())
+      // console.log(priceDiscovery.filter((value)=>{
+      //   return value.winningBids
+      // }).pop())
+      console.log(priceDiscovery)
+      console.log(filledPercent.toString())
+    }, [])
+
     let clearing = "-"
     try {
       const clearingOrder = decodeOrder(data.clearing)
@@ -264,7 +301,8 @@ const AuctionInformation: React.FC<{
           : clearingPrice.toFixed(4)
     } catch {
     }
-
+    
+    
     const minBidPrice = parseFloat(
         ethers.utils.formatUnits(
             BigNumber.from(data.minimum)
@@ -274,6 +312,21 @@ const AuctionInformation: React.FC<{
     )
 
     const live = data.live
+    
+    if (priceDiscovery) {
+      clearing = live ? parseFloat(
+        ethers.utils.formatUnits(priceDiscovery.clearing, data.bidding.decimals)
+        ).toFixed(2)
+        : clearing
+    }
+    
+    const filled = !live 
+      ? parseFloat(
+        ethers.utils.formatUnits(BigNumber.from(data.filled).mul(10**8).div(data.size), 6)
+      ).toFixed(0)
+      : parseFloat(
+        ethers.utils.formatUnits(filledPercent, 4)
+      ).toFixed(0)
 
     const fixed = data.bidding.symbol == "USDC"
       ? 2 : 4
@@ -287,8 +340,8 @@ const AuctionInformation: React.FC<{
     }))
 
     const highestBid = useMemo(() => {
-      return bidData.length > 0
-        ? highestBidPrice.toFixed(2) + " " + data.bidding.symbol
+      return bidData.length > 0 && clearing != "-"
+        ? clearing + " " + data.bidding.symbol
         : "-"
     }, [bidData, data])
 
@@ -342,10 +395,14 @@ const AuctionInformation: React.FC<{
           </Description>
           <TopAuctionInformation>
               {live
-                ? topInformationItem(
-                    "Highest Bid (per oToken):", 
-                    `${highestBid}`, color,
-                  )
+                ? (<>
+                    {topInformationItem(
+                    "Clearing Price (per oToken):", 
+                    highestBid, color)}
+                    {topInformationItem(
+                      "Filled:", filled + "%", color
+                    )}
+                  </>)
                 : (<>
                     {topInformationItem(
                       "Clearing Price (per oToken):", 

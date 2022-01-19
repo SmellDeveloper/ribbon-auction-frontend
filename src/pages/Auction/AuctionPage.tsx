@@ -1,5 +1,5 @@
 import { useWeb3React } from "@web3-react/core";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AuctionInformation from "../../components/Auction/AuctionInformation";
 import { Redirect } from "react-router-dom";
 import styled from "styled-components";
@@ -7,7 +7,7 @@ import useTextAnimation from "../../hooks/useTextAnimation";
 import useAuctionOption from "../../hooks/useAuctionOption";
 import moment from "moment";
 import { useAuctionsData, useBidsData } from "../../hooks/subgraphDataContext";
-import { NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
+import { getERC20TokenAddress, NETWORK_ALT_DESCRIPTION } from "../../constants/constants";
 import { CHAINID } from "../../utils/env";
 import { switchChains } from "../../utils/switch";
 import { AnimatePresence } from "framer-motion";
@@ -19,6 +19,11 @@ import LiveIndicator from "../../components/Indicator/Live";
 import { useGlobalState } from "../../store/store";
 import { BigNumber } from "ethers";
 import { usePendingTransactions } from "../../hooks/pendingTransactionsContext";
+import { StETHFactory } from "../../codegen/StETHFactory";
+import { Assets } from "../../store/types";
+import { useWeb3Context } from "../../hooks/web3Context";
+import { YvUSDCFactory } from "../../codegen/YvUSDCFactory";
+import { formatUnits } from "ethers/lib/utils";
 
 const StatusText = styled.span`
   font-size: 20px;
@@ -123,15 +128,66 @@ const AuctionPage = () => {
   );
   const { auction, auctionTitle } = useAuctionOption();
   const [auctionId, underlying, strike, type] = auctionTitle!.split("-")
+  const { provider } = useWeb3Context();
 
   useEffect(() => {
     setGlobalAuctionId(auctionId)
   }, [auctionId])
-
+  
   const { data: balances, loading: balanceLoading } = useUserBalance()
   const { data: auctions, loading: auctionsLoading } = useAuctionsData(auctionId)
   const { data: bids, loading: bidsLoading } = useBidsData(auctionId)
   const data = auctions[0]
+
+  const [wstethPrice, setWstethPrice] = useState<BigNumber>();
+  const [yvusdcPrice, setYvusdcPrice] = useState<BigNumber>();
+
+  const wstethContract = useMemo(()=>{
+    try {
+      const address = getERC20TokenAddress("wsteth" as Assets, data.chainId as number)
+      
+      return StETHFactory.connect(address, library ? library.getSigner() : provider)
+    } catch {
+      return
+    }
+  }, [data, library, provider])
+  
+  useEffect(() => {
+
+    (async () => {
+      try {
+        setWstethPrice(await wstethContract!.stEthPerToken());
+      } catch {}
+    })();
+  }, [wstethContract]);
+
+  const yvusdcContract = useMemo(()=>{
+    try {
+      const address = getERC20TokenAddress("yvusdc" as Assets, data.chainId as number)
+      return YvUSDCFactory.connect(address, library ? library.getSigner() : provider)
+    } catch {
+      return
+    }
+  }, [data, library, provider])
+
+  useEffect(() => {
+
+    (async () => {
+    try {
+      setYvusdcPrice(await yvusdcContract!.pricePerShare());
+    } catch {}
+    })();
+  }, [yvusdcContract]);
+
+  const additionalInfo = useMemo(() => {
+    if (wstethPrice && underlying == "wstETH") {
+      return `1 wstETH = ${parseFloat(formatUnits(wstethPrice, 18)).toFixed(4)} ETH`
+    } else if (yvusdcPrice && underlying == "yvUSDC") {
+      return `1 yvUSDC = ${parseFloat(formatUnits(yvusdcPrice, 6)).toFixed(4)} USDC`
+    } else {
+      return
+    }
+  }, [wstethPrice, yvusdcPrice, underlying])
 
   const loading = auctionsLoading || bidsLoading || balanceLoading
 
@@ -153,12 +209,8 @@ const AuctionPage = () => {
     </>
     )
   }, [bids, data])
-
   
-
-  
-  
-  if (!loading) {
+  if (!loading && wstethPrice && yvusdcPrice) {
     if (!data) {
       return <Redirect to="/" />;
     } else {
@@ -190,7 +242,7 @@ const AuctionPage = () => {
             
           </StatusTitleContainer>
     
-          <AuctionInformation data={data} bidData={bids} chainId={currentChainId} library={library}></AuctionInformation>
+          <AuctionInformation data={data} bidData={bids} additionalInfo={additionalInfo}></AuctionInformation>
           
           <ListContainer>
             <WalletModule>
