@@ -23,10 +23,8 @@ import {
 } from "./types";
 import theme from "../../design/theme";
 import MobileOverlayMenu from "../../components/Common/MobileOverlayMenu";
-import MenuButton from "../../components/Common/MenuButton";
 import { copyTextToClipboard } from "../../utils/text";
 import useOutsideAlerter from "../../hooks/useOutsideAlerter";
-import { WalletConnectConnector } from "@web3-react/walletconnect-connector";
 import { ActionButton } from "../Common/Buttons";
 import useConnectWalletModal from "../../hooks/useConnectWalletModal";
 import ButtonArrow from "../../components/Common/ButtonArrow";
