@@ -25,7 +25,7 @@ import theme from "../../design/theme";
 import MobileOverlayMenu from "../../components/Common/MobileOverlayMenu";
 import { copyTextToClipboard } from "../../utils/text";
 import useOutsideAlerter from "../../hooks/useOutsideAlerter";
-import { ActionButton } from "../../components/Common/Buttons";
+// import { ActionButton } from "../../components/Common/Buttons";
 import useConnectWalletModal from "../../hooks/useConnectWalletModal";
 import ButtonArrow from "../../components/Common/ButtonArrow";
 import {
@@ -136,12 +136,12 @@ const WalletButtonText = styled(Title)<WalletStatusProps>`
   color: #FFFFFF;
 `;
 
-const InvestButton = styled(ActionButton)`
-  margin-left: ${investButtonMarginLeft}%;
-  width: ${investButtonWidth}%;
-  height: 48px;
-  border-radius: ${theme.border.radius};
-`;
+// const InvestButton = styled(ActionButton)`
+//   margin-left: ${investButtonMarginLeft}%;
+//   width: ${investButtonWidth}%;
+//   height: 48px;
+//   border-radius: ${theme.border.radius};
+// `;
 
 const WalletDesktopMenu = styled(motion.div)<MenuStateProps>`
   ${(props) =>
