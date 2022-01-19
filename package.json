@@ -70,11 +70,11 @@
   },
   "devDependencies": {
     "@typechain/ethers-v5": "^2.0.0",
-    "@types/react-router-dom": "^5.1.7",
-    "@types/styled-components": "^5.1.9",
-    "typechain": "^4.0.0",
     "@types/chart.js": "^2.9.31",
     "@types/react-lottie": "^1.2.5",
-    "@types/smoothscroll-polyfill": "^0.3.1"
+    "@types/react-router-dom": "^5.1.7",
+    "@types/smoothscroll-polyfill": "^0.3.1",
+    "@types/styled-components": "^5.1.9",
+    "typechain": "^4.0.0"
   }
 }

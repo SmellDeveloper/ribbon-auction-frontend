@@ -138,7 +138,7 @@ const AuctionPage = () => {
   const { data: auctions, loading: auctionsLoading } = useAuctionsData(auctionId)
   const { data: bids, loading: bidsLoading } = useBidsData(auctionId)
   const data = auctions[0]
-
+  
   const [wstethPrice, setWstethPrice] = useState<BigNumber>();
   const [yvusdcPrice, setYvusdcPrice] = useState<BigNumber>();
 
@@ -209,8 +209,18 @@ const AuctionPage = () => {
     </>
     )
   }, [bids, data])
+
+  const loadedInfo = useMemo(() => {
+    if (data) {
+      return data.chainId == 1
+        ? wstethPrice && yvusdcPrice
+        : true
+    } else {
+      return false
+    }
+  }, [wstethPrice, yvusdcPrice, data])
   
-  if (!loading && wstethPrice && yvusdcPrice) {
+  if (!loading && loadedInfo) {
     if (!data) {
       return <Redirect to="/" />;
     } else {
