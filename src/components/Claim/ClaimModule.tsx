@@ -9,6 +9,7 @@ import { impersonateAddress } from "../../utils/development";
 import { decodeOrder } from "../../utils/order";
 import { BigNumber, ethers } from "ethers";
 import { numberWithCommas } from "../../utils/text";
+import { evaluateBids } from "../../utils/calculations";
 
 const EmptyDescriptionContainer = styled.div`
   font-size: 14px;
@@ -135,34 +136,36 @@ const ClaimModule: React.FC<{
     return parseInt(ethers.utils.formatUnits(b.price.sub(a.price), 8))
   })
 
-  const winningBids = bidsWithPrice.map((value) => {
-    const newSize = clearingPrice.lte(value.price)
-            ? BigNumber.from(value.payable).mul(10**8).div(clearingPrice)
-            : BigNumber.from(0)
+  // const winningBids = bidsWithPrice.map((value) => {
+  //   const newSize = clearingPrice.lte(value.price)
+  //           ? BigNumber.from(value.payable).mul(10**8).div(clearingPrice)
+  //           : BigNumber.from(0)
 
-    const oTokenQuantity = newSize.lt(availableSize)
-      ? newSize
-      : availableSize
-    availableSize = availableSize.sub(oTokenQuantity)
+  //   const oTokenQuantity = newSize.lt(availableSize)
+  //     ? newSize
+  //     : availableSize
+  //   availableSize = availableSize.sub(oTokenQuantity)
 
-    const biddingQuantity = value.win
-      ? BigNumber.from(value.payable).sub(oTokenQuantity.mul(clearingPrice).div(10**8))
-      : BigNumber.from(value.payable)
+  //   const biddingQuantity = value.win
+  //     ? BigNumber.from(value.payable).sub(oTokenQuantity.mul(clearingPrice).div(10**8))
+  //     : BigNumber.from(value.payable)
 
-    return {...value, otokenClaim: oTokenQuantity, bidClaim: biddingQuantity}
-  })
+  //   return {...value, otokenClaim: oTokenQuantity, bidClaim: biddingQuantity}
+  // })
+
+  const winningBids = evaluateBids(auctionData, bidData, clearingPrice.toString())
   
 
-  const accountBids = winningBids.filter((value)=>{
-    return value.account.id == account && value.win
+  const accountBids = winningBids.bids.filter((value)=>{
+    return value.account.id == account
   })
 
   const unclaimedBids = accountBids.filter((value)=>{
     return !value.claimtx && !value.canceltx
   })
 
-  const oTokenClaimable = accountBids.reduce((sum: BigNumber, a) => sum.add(a.otokenClaim), BigNumber.from(0)); 
-  const biddingClaimable = accountBids.reduce((sum: BigNumber, a) => sum.add(a.bidClaim), BigNumber.from(0)); 
+  const oTokenClaimable = accountBids.reduce((sum: BigNumber, a) => sum.add(a.allocation), BigNumber.from(0)); 
+  const biddingClaimable = accountBids.reduce((sum: BigNumber, a) => sum.add(a.reimburse), BigNumber.from(0)); 
   
   const enable = accountBids.length > 0
   const claimed = unclaimedBids.length == 0

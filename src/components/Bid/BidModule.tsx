@@ -359,7 +359,7 @@ const BidModule: React.FC<{
         <BidButtonContainer>
           <BidButton onClick={allowed 
             ? handlePlaceOrder
-            : handleApproveToken} disabled={waitingApproval || error}>{ 
+            : handleApproveToken} disabled={true}>{ // disabled={waitingApproval || error}>{ 
               allowed
                 ? "PLACE BID"
                 : waitingApproval

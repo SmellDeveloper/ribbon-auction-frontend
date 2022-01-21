@@ -19,6 +19,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { YvUSDCFactory } from "../../codegen/YvUSDCFactory";
 import { formatUnits, parseUnits } from "ethers/lib/utils";
 import { useWeb3Context } from "../../hooks/web3Context";
+import { findClearingPrice } from "../../utils/calculations";
 
 const AuctionInformationContainer = styled.div`
   border-radius: 5px;
@@ -197,92 +198,97 @@ const AuctionInformation: React.FC<{
     )).toFixed(2)
       
     
-    let prices:BigNumber[] = []
+    // let prices:BigNumber[] = []
     
-    const clear = useMemo(()=>{
-      return bidData.map((value) => {
-        return {
-          ...value,
-          price: BigNumber.from(value.payable).mul(10**8).div(value.size),
-          size: BigNumber.from(value.size)}
-      }).sort((a, b) => {
-        return Number(b.price.sub(a.price))
-        })
-    }, [bidData])
+    // const clear = useMemo(()=>{
+    //   return bidData.map((value) => {
+    //     return {
+    //       ...value,
+    //       price: BigNumber.from(value.payable).mul(10**8).div(value.size),
+    //       size: BigNumber.from(value.size)}
+    //   }).sort((a, b) => {
+    //     return Number(b.price.sub(a.price))
+    //     })
+    // }, [bidData])
 
-    let availableSize = BigNumber.from(data.size)
+    // let availableSize = BigNumber.from(data.size)
 
-    const clearFind = useMemo(()=>{
+    // const clearFind = useMemo(()=>{
 
-      return clear.map((value) => {
-        const oTokenQuantity = value.size.lt(availableSize)
-          ? value.size
-          : availableSize
+    //   return clear.map((value) => {
+    //     const oTokenQuantity = value.size.lt(availableSize)
+    //       ? value.size
+    //       : availableSize
 
-        availableSize = availableSize.sub(oTokenQuantity)
-        if (oTokenQuantity.gt(0)) prices.push(value.price)
+    //     availableSize = availableSize.sub(oTokenQuantity)
+    //     if (oTokenQuantity.gt(0)) prices.push(value.price)
           
-        return {
-          ...value,
-          allocated: oTokenQuantity
-        }
-      })
-    },[clear])
+    //     return {
+    //       ...value,
+    //       allocated: oTokenQuantity
+    //     }
+    //   })
+    // },[clear])
 
-    const priceDiscovery = useMemo(()=>{
-      const discovery = prices.map((currentPrice) => {
-        let availableSize = BigNumber.from(data.size)
+    // const priceDiscovery = useMemo(()=>{
+    //   const discovery = prices.map((currentPrice) => {
+    //     let availableSize = BigNumber.from(data.size)
 
-        const adjusted = clearFind.map((value) => {
-          const newSize = currentPrice.lte(value.price)
-            ? BigNumber.from(value.payable).mul(10**8).div(currentPrice)
-            : BigNumber.from(0)
+    //     const adjusted = clearFind.map((value) => {
+    //       const newSize = currentPrice.lte(value.price)
+    //         ? BigNumber.from(value.payable).mul(10**8).div(currentPrice)
+    //         : BigNumber.from(0)
 
-          const oTokenQuantity = newSize.lt(availableSize)
-            ? newSize
-            : availableSize
+    //       const oTokenQuantity = newSize.lt(availableSize)
+    //         ? newSize
+    //         : availableSize
 
-          availableSize = availableSize.sub(oTokenQuantity)
+    //       availableSize = availableSize.sub(oTokenQuantity)
             
-          return {
-            ...value,
-            allocated: oTokenQuantity.toString(),
-            size: value.size.toString()
-          }
-        })
+    //       return {
+    //         ...value,
+    //         allocated: oTokenQuantity.toString(),
+    //         size: value.size.toString()
+    //       }
+    //     })
 
-        return {
-          clearing: currentPrice,
-          adjustedBids: availableSize.gt(0)
-            ? undefined
-            : adjusted
-        }
-      })
+    //     return {
+    //       clearing: currentPrice,
+    //       adjustedBids: availableSize.gt(0)
+    //         ? undefined
+    //         : adjusted
+    //     }
+    //   })
 
-      return discovery.filter((value)=>{
-        return value.adjustedBids
-      }).pop()
-    },[])
+    //   return discovery.filter((value)=>{
+    //     return value.adjustedBids
+    //   }).pop()
+    // },[])
 
     
 
-    const filledPercent = useMemo(()=>{
-      return BigNumber.from(data.size).sub(availableSize).mul(10**6).div(data.size)
-    }, [])
-
+    
+  // const filledPercent = useMemo(()=>{
+    //   return BigNumber.from(data.size).sub(availableSize).mul(10**6).div(data.size)
+    // }, [])
     
 
     // const price
     
-    useEffect(()=>{
-      // console.log(availableSize.toString())
-      // console.log(clearFind)
-      // console.log(lastHighest.toString())
-      // console.log(priceDiscovery.filter((value)=>{
-      //   return value.winningBids
-      // }).pop())
-      console.log(priceDiscovery)
-      console.log(filledPercent.toString())
+    // useEffect(()=>{
+    //   // console.log(availableSize.toString())
+    //   // console.log(clearFind)
+    //   // console.log(lastHighest.toString())
+    //   // console.log(priceDiscovery.filter((value)=>{
+    //   //   return value.winningBids
+    //   // }).pop())
+    //   console.log(priceDiscovery)
+    //   console.log(filledPercent.toString())
+    // }, [])
+
+    let priceDiscovery = findClearingPrice(data, bidData)
+    const filledPercent = useMemo(()=>{
+      return BigNumber.from(priceDiscovery.filled).mul(10**6).div(data.size)
     }, [])
 
     let clearing = "-"
